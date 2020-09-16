@@ -23,4 +23,5 @@ The goal of this project is to help ACLU better target their resources by identi
 
 - *Legiscan API for additional data*: LegiScan API (https://legiscan.com/legiscan) can be used to acquire more data about bills if necessary and the user manual for the API can be found here: https://legiscan.com/gaits/documentation/legiscan. 
 
+We've added some information about the dates of regular legislative sessions in `regular_session_dates.csv` in this repo that you may want to load into your database as well. Note that this file covers regular sessions (but not special sessions) and may be missing some dates (online sources like ballotopedia may help fill these out). Additionally, some states (such as CA) sometimes start their sessions in the December before the year associated with the legislative session, so you may want to look out for potential inconsistencies.
 

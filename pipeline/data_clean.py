@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from daggit.core.io.io import Pandas_Dataframe
-from daggit.core.base.factor import BaseOperator
+from daggit.core.base.factory import BaseOperator
 
 
 class feature_eng(BaseOperator):

@@ -9,8 +9,7 @@ class feature_eng(BaseOperator):
     
     @property
     def inputs(self):
-        return {"features": str(self.node.inputs[0]),
-                "labels": str(self.node.inputs[1])}
+        return {"raw": Pandas_Dataframe(self.node.inputs[0])}
 
     @property
     def outputs(self):
@@ -19,16 +18,22 @@ class feature_eng(BaseOperator):
                 "val": Pandas_Dataframe(self.node.outputs[2])}
     
     def run(self):
-        df = self.inputs["input_path"].read()
+	"""Engineers features out of raw data. Saves and returns final dataframe.
+	"""
+        df = self.inputs["raw"].read()
 
-        df['bill_session_date'] = df['session_end_date'] - df['bill_introduced_date']
-        df['times_amended'] = df
+	## convert party_id to string for OHE
+	df['party_id'] = df['party_id'].apply(str)
+	ohe1_df = pd.get_dummies(df[['bill_id', 'introduced_body', 'bill_type']]).drop_duplicates('bill_id')
+	
+	## convert to OHE for adding (# reps/senators + # party members)
+	ohe_df = pd.get_dummies(df[['bill_id', 'role_name', 'party_id']])
+	ohe_df = ohe_df.groupby(['bill_id']).sum()
+	ohe_df = ohe_df.join(ohe1_df.set_index('bill_id'))
 
-        X = df.to_numpy()
-        y = self.inputs["labels"].read()
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .25, random_state = 42)
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_sze = .2, random_state=42)
+	## join with original data
+	df = df[['bill_id', 'introduced_date', 'final_status']].drop_duplicates('bill_id')
+	df = ohe_df.join(df.set_index('bill_id'), on='bill_id')
 
-        self.outputs["train"].write(train)
-        self.outputs["test"].write(test)
-        self.outputs["val"].write(val)
+	df.to_csv("features.csv")        
+	return df

@@ -52,6 +52,7 @@ graph:
     outputs: model
     operation: model.logistic_regression_trainer
     arguments:
+      target: final_status
       max_iter: 200
 
   - node_name: train

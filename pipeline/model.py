@@ -18,11 +18,13 @@ class logistic_regression_trainer(BaseOperator):
             "model": Pickle_Obj(self.node.outputs[0])
         }
 
-    def run(self, max_iter):
+    def run(self, target, max_iter):
         df = self.inputs["train"].read()
 
-        X = df.as_matrix(columns=list(df.columns).remove('final_status'))
-        y = df.as_matrix(columns='final_status')
+        features = list(set(list(df.columns)) - {target})
+
+        X = df.as_matrix(columns=features)
+        y = df.as_matrix(columns=[target])
 
         model = sklearn.linear_model.LogisticRegression(max_iter=max_iter)
         model.fit(X, y)

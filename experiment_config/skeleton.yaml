@@ -43,8 +43,6 @@ graph:
     arguments:
       model_args:
         name: train_test_split
-        arguments:
-          n: 3
     imports:
       - [sklearn.model_selection, TimeSeriesSplit]
 

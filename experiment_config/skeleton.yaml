@@ -1,0 +1,24 @@
+experiment_name: skeleton1
+owner: bills3_group
+
+inputs:
+  sql_loc: ""
+outputs:
+  train: '/data/groups/bills3/vrenduch/train.csv'
+  test: '/data/groups/bills3/vrenduch/test.csv'
+  val: '/data/groups/bills3/vrenduch/val.csv'
+
+graph:
+
+  - node_name: features
+    inputs: raw_data
+    outputs: [train, test, val]
+    operation: data_clean.feature_eng
+    arguments:
+      model_args:
+        name: train_test_split
+        arguments:
+          test_size: 0.2
+    imports:
+      - [sklearn.model_selection, train_test_split]
+

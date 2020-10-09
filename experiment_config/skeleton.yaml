@@ -54,7 +54,7 @@ graph:
     arguments:
       max_iter: 200
 
-- node_name: train
+  - node_name: train
     inputs: [split.train, model_logistic_regression.model]
     outputs: train_accuracy
     operation: model.accuracy

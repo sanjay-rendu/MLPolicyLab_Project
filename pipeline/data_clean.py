@@ -43,7 +43,7 @@ class feature_eng(BaseOperator):
         ohe_df = ohe_df.join(ohe1_df.set_index(index))
 
         ## join with original data
-        df = df[[index] + other_features].drop_duplicates(index)
+        df = df[[index] + date + other_features].drop_duplicates(index)
         df = ohe_df.join(df.set_index(index), on=index)
 
         ## sort by date and convert to numeric

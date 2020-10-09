@@ -51,8 +51,10 @@ class accuracy(BaseOperator):
         df = self.inputs["val"].read()
         model = self.inputs["model"].read()
 
-        X = df.as_matrix(columns=df.columns.remove(target))
-        y = df.as_matrix(columns=target)
+        features = list(set(list(df.columns)) - {target})
+
+        X = df.as_matrix(columns=features)
+        y = df.as_matrix(columns=[target])
 
         y_pred = model.predict(X)
         y_pred = np.array(y_pred > threshold, dtype=np.float)

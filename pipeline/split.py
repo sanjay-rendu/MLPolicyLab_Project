@@ -24,10 +24,10 @@ class split(BaseOperator):
         :param test_size: fraction of test data
         :return: [train, val, test] data
         """
-        all_data = self.inputs["all_data"]
+        all_data = self.inputs["all_data"].read()
 
         train_data, test_data = train_test_split(all_data, test_size=test_size)
-        train_data, val_data = train_test_split(all_data, test_size=val_size)
+        train_data, val_data = train_test_split(train_data, test_size=val_size)
 
         self.outputs["train_data"].write(train_data)
         self.outputs["val_data"].write(val_data)

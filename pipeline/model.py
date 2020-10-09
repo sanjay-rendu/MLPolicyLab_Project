@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factor import BaseOperator
+import sklearn
 
 
 class logistic_regression_trainer(BaseOperator):
@@ -49,7 +50,7 @@ class validate(BaseOperator):
             "accuracy": self.node.outputs[0]
         }
 
-    def run(self, , threshold):
+    def run(self, threshold):
         df = self.inputs["val"].read()
         model_path = self.inputs["model_path"].read()
 

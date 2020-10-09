@@ -48,4 +48,6 @@ class get_labelled_data(BaseOperator):
         df['final_status'] = 0
         df.update(progress)
 
+        df.head(1) # check
+
         self.outputs["labelled"].write(df)

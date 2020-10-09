@@ -1,8 +1,8 @@
 import numpy as np
 from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj, File_Txt
 from daggit.core.base.factory import BaseOperator
-import sklearn
-
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 
 class logistic_regression_trainer(BaseOperator):
 
@@ -26,7 +26,7 @@ class logistic_regression_trainer(BaseOperator):
         X = df.as_matrix(columns=features)
         y = df.as_matrix(columns=[target])
 
-        model = sklearn.linear_model.LogisticRegression(max_iter=max_iter)
+        model = LogisticRegression(max_iter=max_iter)
         model.fit(X, y)
 
         self.outputs["model"].write(model)
@@ -57,6 +57,6 @@ class accuracy(BaseOperator):
         y_pred = model.predict(X)
         y_pred = np.array(y_pred > threshold, dtype=np.float)
 
-        acc = sklearn.metrics.accuracy_score(y, y_pred)
+        acc = accuracy_score(y, y_pred)
 
         self.outputs["accuracy"].write(acc)

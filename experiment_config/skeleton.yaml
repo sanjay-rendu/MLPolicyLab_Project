@@ -34,3 +34,30 @@ graph:
     operation: get_labeled_data.get_labeled_data
     arguments:
       n: 6
+
+  - node_name: split
+    inputs: labeled_data.labled
+    outputs: [train, test]
+    operation: sklearn.Splitters
+    arguments:
+      model_args:
+        name: train_test_split
+        arguments:
+          n: 3
+    imports:
+      - [sklearn.model_selection, TimeSeriesSplit]
+
+  - node_name: model_logistic_regression
+    inputs: split.train
+    outputs: [report, model]
+    operation: sklearn.CrossValidate
+    arguments:
+      model_args:
+        name: LogisticRegression
+        arguments:
+          max_iter: 200
+      target_variable: final_status
+      cv_args:
+        cv: 5
+    imports:
+      - [sklearn.linear_model, LogisticRegression]

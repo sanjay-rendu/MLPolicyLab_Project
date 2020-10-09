@@ -5,7 +5,8 @@ inputs:
   sql_loc: "/data/groups/bills3/mlpp_project_home/experiment_config/data_agg.sql"
   sql_loc1: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
 outputs:
-  engg_data: '/data/groups/bills3/mlpp_data_store/data_engg.csv'
+  report: 'outputs/model_report'
+  model: 'outputs/model'
 
 graph:
   - node_name: fetch

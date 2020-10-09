@@ -8,7 +8,7 @@ class fetch_sql(BaseOperator):
 
     @property
     def inputs(self):
-        return {"sql_loc": self.node.inputs[0]}
+        return {"sql_loc": self.node.inputs[0].external_ref}
 
     @property
     def outputs(self):

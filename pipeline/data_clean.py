@@ -13,7 +13,7 @@ class feature_eng(BaseOperator):
     def outputs(self):
         return {"df": Pandas_Dataframe(self.node.outputs[0])}
 
-    def run(self, index, ohe_features, summed_features, other_features):
+    def run(self, index, ohe_features, summed_features, other_features, date):
         """
         Engineers features out of raw data. Saves and returns final dataframe.
             Arguments:

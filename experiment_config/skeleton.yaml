@@ -8,7 +8,6 @@ outputs:
   train_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/train_report.txt'
   test_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/test_report.txt'
   val_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/val_report.txt'
-  model: '/data/groups/bills3/mlpp_data_store/skeleton1/model.obj'
 
 graph:
   - node_name: fetch
@@ -56,7 +55,7 @@ graph:
       max_iter: 200
 
   - node_name: train
-    inputs: [split.train, model]
+    inputs: [split.train, model_logistic_regression.model]
     outputs: train_accuracy
     operation: model.accuracy
     arguments:
@@ -64,7 +63,7 @@ graph:
       threshold: 0.5
 
   - node_name: validate
-    inputs: [split.val, model]
+    inputs: [split.val, model_logistic_regression.model]
     outputs: val_accuracy
     operation: model.accuracy
     arguments:
@@ -72,7 +71,7 @@ graph:
       threshold: 0.5
 
   - node_name: test
-    inputs: [split.test, model]
+    inputs: [split.test, model_logistic_regression.model]
     outputs: test_accuracy
     operation: model.accuracy
     arguments:

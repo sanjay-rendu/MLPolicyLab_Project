@@ -3,6 +3,7 @@ import numpy as np
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factor import BaseOperator
 import sklearn
+import joblib
 
 
 class logistic_regression_trainer(BaseOperator):
@@ -61,7 +62,7 @@ class validate(BaseOperator):
         y_pred = model.predict(X)
         y_pred = np.array(y_pred > threshold, dtype=np.float)
 
-        acc = sklearn.metrics.accuracy_score(y_true, y_pred))
+        acc = sklearn.metrics.accuracy_score(y_true, y_pred)
 
         self.outputs["accuracy"].write(acc)
 

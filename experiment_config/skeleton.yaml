@@ -38,7 +38,7 @@ graph:
       other_features: ['final_status']
 
   - node_name: split
-    inputs: labeled_data.labeled_data
+    inputs: data_eng.engg_data
     outputs: [train, val, test]
     operation: split.split
     arguments:

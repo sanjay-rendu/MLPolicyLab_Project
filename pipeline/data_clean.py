@@ -44,4 +44,6 @@ class feature_eng(BaseOperator):
         df = df[[index] + other_features].drop_duplicates(index)
         df = ohe_df.join(df.set_index(index), on=index)
 
+        df.head(1) #check
+
         self.outputs["df"].write(df)

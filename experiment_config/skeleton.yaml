@@ -24,8 +24,8 @@ graph:
     operation: data_clean.feature_eng
     arguments:
       index: 'bill_id'
-      ohe_features: ['party_id']
-      summed_features: ['bill_id', 'role_name', 'party_id']
+      ohe_features: ['introduced_body', 'bill_type']
+      summed_features: ['role_name', 'party_id']
       other_features: ['introduced_date', 'final_status']
 
   - node_name: labeled_data

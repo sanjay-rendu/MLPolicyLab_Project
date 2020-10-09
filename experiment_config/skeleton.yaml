@@ -2,23 +2,22 @@ experiment_name: skeleton1
 owner: bills3_group
 
 inputs:
-  sql_loc: ""
+  sql_loc: "/data/groups/bills3/mlpp_project_home/experiment_config/data_agg.sql"
 outputs:
-  train: '/data/groups/bills3/vrenduch/train.csv'
-  test: '/data/groups/bills3/vrenduch/test.csv'
-  val: '/data/groups/bills3/vrenduch/val.csv'
+  engg_data: '/data/groups/bills3/mlpp_data_store/data_engg.csv'
 
 graph:
+  - node_name: fetch
+    inputs: sql_loc
+    outputs: raw_data
+    operation: data_io.fetch_sql
 
-  - node_name: features
-    inputs: raw_data
-    outputs: [train, test, val]
+  - node_name: data_eng
+    inputs: fetch.raw_data
+    outputs: engg_data
     operation: data_clean.feature_eng
     arguments:
-      model_args:
-        name: train_test_split
-        arguments:
-          test_size: 0.2
-    imports:
-      - [sklearn.model_selection, train_test_split]
-
+      index: 'bill_id'
+      ohe_features: ['party_id']
+      summed_features: ['bill_id', 'role_name', 'party_id']
+      other_features: ['introduced_date', 'final_status']

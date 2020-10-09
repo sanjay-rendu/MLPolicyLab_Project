@@ -46,7 +46,7 @@ graph:
         arguments:
           test_size: 0.2
     imports:
-      - [sklearn.model_selection, TimeSeriesSplit]
+      - [sklearn.model_selection, train_test_split]
 
   - node_name: model_logistic_regression
     inputs: split.train

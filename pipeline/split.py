@@ -7,14 +7,14 @@ class split(BaseOperator):
 
     @property
     def inputs(self):
-        return {"all_data": self.node.inputs[0]}
+        return {"all_data": Pandas_Dataframe(self.node.inputs[0])}
 
     @property
     def outputs(self):
         return {
             "train_data": Pandas_Dataframe(self.node.outputs[0]),
             "val_data": Pandas_Dataframe(self.node.outputs[1]),
-            "test_data": Pandas_Dataframe(self.node.outputs[2]),
+            "test_data": Pandas_Dataframe(self.node.outputs[2])
         }
 
     def run(self, val_size, test_size):

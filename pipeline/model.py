@@ -21,7 +21,7 @@ class logistic_regression_trainer(BaseOperator):
     def run(self, max_iter):
         df = self.inputs["train"].read()
 
-        X = df.as_matrix(columns=df.columns.remove('final_status'))
+        X = df.as_matrix(columns=list(df.columns).remove('final_status'))
         y = df.as_matrix(columns='final_status')
 
         model = sklearn.linear_model.LogisticRegression(max_iter=max_iter)

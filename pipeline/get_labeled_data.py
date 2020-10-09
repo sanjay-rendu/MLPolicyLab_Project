@@ -3,7 +3,7 @@ from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
 
 
-class get_labelled_data(BaseOperator):
+class get_labeled_data(BaseOperator):
 
     @property
     def inputs(self):

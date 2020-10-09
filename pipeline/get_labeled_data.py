@@ -15,7 +15,7 @@ class get_labeled_data(BaseOperator):
     @property
     def outputs(self):
         return {
-            "labelled": Pandas_Dataframe(self.node.outputs[0])
+            "labeled": Pandas_Dataframe(self.node.outputs[0])
         }
 
     def run(self, n):
@@ -50,4 +50,4 @@ class get_labeled_data(BaseOperator):
 
         print(df.head(1)) # check
 
-        self.outputs["labelled"].write(df)
+        self.outputs["labeled"].write(df)

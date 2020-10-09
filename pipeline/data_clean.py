@@ -53,5 +53,6 @@ class feature_eng(BaseOperator):
         df['introduced_month'] = df[date].dt.month
         df['introduced_day'] = df[date].dt.day
         df = df.drop(date, axis=1)
+        df.head(1) #check
 
         self.outputs["df"].write(df)

@@ -5,7 +5,8 @@ inputs:
   sql_loc: "/data/groups/bills3/mlpp_project_home/experiment_config/data_agg.sql"
   sql_loc1: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
 outputs:
-  engg_data: '/data/groups/bills3/mlpp_data_store/data_engg.csv'
+  report: 'outputs/model_report'
+  model: 'outputs/model'
 
 graph:
   - node_name: fetch
@@ -30,8 +31,35 @@ graph:
       other_features: ['final_status']
 
   - node_name: labeled_data
-    inputs: [fetch.raw_data, progress.bill_progress]
+    inputs: [data_eng.engg_data, progress.bill_progress]
     outputs: labled
     operation: get_labeled_data.get_labeled_data
     arguments:
       n: 6
+
+  - node_name: split
+    inputs: labeled_data.labled
+    outputs: [train, test]
+    operation: sklearn.Splitters
+    arguments:
+      model_args:
+        name: train_test_split
+        arguments:
+          test_size: 0.2
+    imports:
+      - [sklearn.model_selection, train_test_split]
+
+  - node_name: model_logistic_regression
+    inputs: split.train
+    outputs: [report, model]
+    operation: sklearn.CrossValidate
+    arguments:
+      model_args:
+        name: LogisticRegression
+        arguments:
+          max_iter: 200
+      target_variable: final_status
+      cv_args:
+        cv: 5
+    imports:
+      - [sklearn.linear_model, LogisticRegression]

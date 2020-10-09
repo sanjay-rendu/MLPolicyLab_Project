@@ -29,9 +29,9 @@ class logistic_regression_trainer(BaseOperator):
         model = sklearn.linear_model.LogisticRegression()
         model.fit(X, y)
 
-        joblib.dump(model, model_dir + '/logisitc_model.joblib')
+        joblib.dump(model, model_dir + '/logistic_model.joblib')
 
-        self.outputs["model_path"].write(model_dir + '/logisitc_model.joblib')
+        self.outputs["model_path"].write(model_dir + '/logistic_model.joblib')
 
 
 class validate(BaseOperator):

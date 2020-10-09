@@ -5,8 +5,8 @@ inputs:
   sql_loc: "/data/groups/bills3/mlpp_project_home/experiment_config/data_agg.sql"
   sql_loc1: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
 outputs:
-  report: 'outputs/model_report'
-  model: 'outputs/model.joblib'
+  report: '/data/groups/bills3/mlpp_data_store/skeleton1/model_report'
+  model: '/data/groups/bills3/mlpp_data_store/skeleton1/model.joblib'
 
 graph:
   - node_name: fetch
@@ -38,7 +38,7 @@ graph:
       n: 6
 
   - node_name: split
-    inputs: labeled_data.all_data
+    inputs: labeled_data.labeled_data
     outputs: [train, val, test]
     operation: split.split
     arguments:

@@ -6,7 +6,7 @@ inputs:
   sql_loc1: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
 outputs:
   report: 'outputs/model_report'
-  model: 'outputs/model'
+  model: 'outputs/model.joblib'
 
 graph:
   - node_name: fetch
@@ -32,34 +32,37 @@ graph:
 
   - node_name: labeled_data
     inputs: [data_eng.engg_data, progress.bill_progress]
-    outputs: labled
+    outputs: labeled_data
     operation: get_labeled_data.get_labeled_data
     arguments:
       n: 6
 
   - node_name: split
-    inputs: labeled_data.labled
-    outputs: [train, test]
-    operation: sklearn.Splitters
+    inputs: labeled_data.all_data
+    outputs: [train, val, test]
+    operation: split.split
     arguments:
-      model_args:
-        name: train_test_split
-        arguments:
-          test_size: 0.2
-    imports:
-      - [sklearn.model_selection, train_test_split]
+        val_size: 0.1
+        test_size: 0.2
 
   - node_name: model_logistic_regression
     inputs: split.train
-    outputs: [report, model]
-    operation: sklearn.CrossValidate
+    outputs: model_path
+    operation: model.logistic_regression_trainer
     arguments:
-      model_args:
-        name: LogisticRegression
-        arguments:
-          max_iter: 200
-      target_variable: final_status
-      cv_args:
-        cv: 5
-    imports:
-      - [sklearn.linear_model, LogisticRegression]
+      model_path: model
+      max_iter: 200
+
+  - node_name: validate
+    inputs: [split.val, model_logistic_regression.model_path]
+    outputs: val_accuracy
+    operation: model.validate
+    arguments:
+      threshold: 0.5
+
+  - node_name: test
+    inputs: [split.test, model_logistic_regression.model_path]
+    outputs: test_accuracy
+    operation: model.test
+    arguments:
+      threshold: 0.5

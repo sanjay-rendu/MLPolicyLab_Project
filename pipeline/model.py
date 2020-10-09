@@ -38,7 +38,7 @@ class accuracy(BaseOperator):
     def inputs(self):
         return {
             "val": Pandas_Dataframe(self.node.inputs[0]),
-            "model_path": Pickle_Obj(self.node.inputs[1])
+            "model": Pickle_Obj(self.node.inputs[1])
         }
 
     @property
@@ -47,12 +47,12 @@ class accuracy(BaseOperator):
             "accuracy": File_Txt(self.node.outputs[0])
         }
 
-    def run(self, threshold):
+    def run(self, target, threshold):
         df = self.inputs["val"].read()
-        model = self.inputs["model_path"].read()
+        model = self.inputs["model"].read()
 
-        X = df.as_matrix(columns=df.columns.remove('final_status'))
-        y = df.as_matrix(columns='final_status')
+        X = df.as_matrix(columns=df.columns.remove(target))
+        y = df.as_matrix(columns=target)
 
         y_pred = model.predict(X)
         y_pred = np.array(y_pred > threshold, dtype=np.float)

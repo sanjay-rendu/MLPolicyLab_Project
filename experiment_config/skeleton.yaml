@@ -56,22 +56,25 @@ graph:
       max_iter: 200
 
   - node_name: train
-    inputs: [split.train, model_logistic_regression.model]
+    inputs: [split.train, model]
     outputs: train_accuracy
     operation: model.accuracy
     arguments:
+      target: final_status
       threshold: 0.5
 
   - node_name: validate
-    inputs: [split.val, model_logistic_regression.model]
+    inputs: [split.val, model]
     outputs: val_accuracy
     operation: model.accuracy
     arguments:
+      target: final_status
       threshold: 0.5
 
   - node_name: test
-    inputs: [split.test, model_logistic_regression.model]
+    inputs: [split.test, model]
     outputs: test_accuracy
     operation: model.accuracy
     arguments:
+      target: final_status
       threshold: 0.5

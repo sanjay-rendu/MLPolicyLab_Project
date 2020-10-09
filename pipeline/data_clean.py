@@ -19,6 +19,8 @@ class feature_eng(BaseOperator):
             Arguments:
                 index: str
                     Index features (bill_id)
+                date: str
+                    String argument for date of bill
                 ohe_features: list[str]
                     Features to be one hot encoded such as introduced_body and bill_type
                 summed_features: list[str]
@@ -29,7 +31,7 @@ class feature_eng(BaseOperator):
                 pandas dataframe of features
         """
         df = self.inputs["raw"].read()
-
+        ## df = df.fillna(0)
         ## convert party_id to string for OHE
         for feature in ohe_features:
             df[feature] = df[feature].apply(str)
@@ -43,5 +45,13 @@ class feature_eng(BaseOperator):
         ## join with original data
         df = df[[index] + other_features].drop_duplicates(index)
         df = ohe_df.join(df.set_index(index), on=index)
+
+        ## sort by date and convert to numeric
+        df[date] = pd.to_datetime(df[date])
+        df = df.sort_values(date)
+        df['introduced_year'] = df[date].dt.year
+        df['introduced_month'] = df[date].dt.month
+        df['introduced_day'] = df[date].dt.day
+        df = df.drop(date, axis=1)
 
         self.outputs["df"].write(df)

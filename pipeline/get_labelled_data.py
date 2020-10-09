@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
 
@@ -9,8 +8,8 @@ class get_labelled_data(BaseOperator):
     @property
     def inputs(self):
         return {
-            "raw": Pandas_Dataframe(self.node.inputs[0])
-            "progress": Pandas_Dataframe(self.node.inputs[0])
+            "raw": Pandas_Dataframe(self.node.inputs[0]),
+            "progress": Pandas_Dataframe(self.node.inputs[1])
         }
 
     @property
@@ -19,14 +18,12 @@ class get_labelled_data(BaseOperator):
             "labelled": Pandas_Dataframe(self.node.outputs[0])
         }
 
-    def run(self, n, out_path):
+    def run(self, n):
         """
             Computes labels for bills which are passed within a time frame and updates dataframe.
             Arguments:
                 n: int
                     number of months for time frame
-                out_path: str
-                    Path where final features are saved
             Returns:
                 updated pandas dataframe with labels
         """
@@ -51,6 +48,4 @@ class get_labelled_data(BaseOperator):
         df['final_status'] = 0
         df.update(progress)
 
-        df.to_csv(out_path)
-
-        return df
+        self.outputs["labelled"].write(df)

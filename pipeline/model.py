@@ -92,6 +92,6 @@ class test(BaseOperator):
         y_pred = model.predict(X)
         y_pred = np.array(y_pred > threshold, dtype=np.float)
 
-        acc = sklearn.metrics.accuracy_score(y_true, y_pred))
+        acc = sklearn.metrics.accuracy_score(y_true, y_pred)
 
         self.outputs["accuracy"].write(acc)

@@ -61,4 +61,4 @@ class accuracy(BaseOperator):
 
         acc = accuracy_score(y, y_pred)
 
-        self.outputs["accuracy"].write(acc)
+        self.outputs["accuracy"].write(str(acc))

@@ -2,26 +2,26 @@ experiment_name: skeleton1
 owner: bills3_group
 
 inputs:
-  sql_loc: "/data/groups/bills3/mlpp_project_home/experiment_config/data_agg.sql"
-  sql_loc1: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
+  sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/bill.sql"
+  sql_loc_progress: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
 outputs:
   train_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/train_report.txt'
   test_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/test_report.txt'
   val_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/val_report.txt'
 
 graph:
-  - node_name: fetch
-    inputs: sql_loc
-    outputs: raw_data
+  - node_name: fetch_bill_data
+    inputs: sql_loc_bill
+    outputs: bill_data
     operation: data_io.fetch_sql
 
-  - node_name: progress
-    inputs: sql_loc1
-    outputs: bill_progress
+  - node_name: fetch_progress_data
+    inputs: sql_loc_progress
+    outputs: progress_data
     operation: data_io.fetch_sql
 
   - node_name: labeled_data
-    inputs: [fetch.raw_data, progress.bill_progress]
+    inputs: [fetch_bill_data.bill_data, fetch_progress_data.progress_data]
     outputs: labeled_data
     operation: get_labeled_data.get_labeled_data
     arguments:
@@ -29,7 +29,7 @@ graph:
 
   - node_name: data_eng
     inputs: labeled_data.labeled_data
-    outputs: engg_data
+    outputs: processed_data
     operation: data_clean.feature_eng
     arguments:
       index: 'bill_id'
@@ -39,7 +39,7 @@ graph:
       other_features: ['final_status']
 
   - node_name: split
-    inputs: data_eng.engg_data
+    inputs: data_eng.processed_data
     outputs: [train, val, test]
     operation: split.split
     arguments:

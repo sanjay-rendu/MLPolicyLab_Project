@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from daggit.core.io.io import Pandas_Dataframe
-from daggit.core.base.factor import BaseOperator
+from daggit.core.base.factory import BaseOperator
 import sklearn
 import joblib
 

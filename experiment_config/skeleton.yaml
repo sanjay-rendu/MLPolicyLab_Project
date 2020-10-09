@@ -28,9 +28,9 @@ graph:
       summed_features: ['bill_id', 'role_name', 'party_id']
       other_features: ['introduced_date', 'final_status']
 
-  - node_name: labelled_data
+  - node_name: labeled_data
     inputs: [fetch.raw_data, progress.bill_progress]
-    outputs: engg_data
-    operation: get_labelled_data.get_labelled_data
+    outputs: labled
+    operation: get_labeled_data.get_labeled_data
     arguments:
       n: 6

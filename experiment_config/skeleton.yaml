@@ -24,12 +24,12 @@ graph:
     operation: data_clean.feature_eng
     arguments:
       index: 'bill_id'
-      ohe_features: ['party_id']
-      summed_features: ['bill_id', 'role_name', 'party_id']
+      ohe_features: ['introduced_body', 'bill_type']
+      summed_features: ['role_name', 'party_id']
       other_features: ['introduced_date', 'final_status']
 
   - node_name: labeled_data
-    inputs: [fetch.raw_data, progress.bill_progress]
+    inputs: [data_eng.engg_data, progress.bill_progress]
     outputs: labled
     operation: get_labeled_data.get_labeled_data
     arguments:

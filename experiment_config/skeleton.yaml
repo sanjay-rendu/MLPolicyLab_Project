@@ -19,8 +19,15 @@ graph:
     outputs: bill_progress
     operation: data_io.fetch_sql
 
+  - node_name: labeled_data
+    inputs: [fetch.raw_data, progress.bill_progress]
+    outputs: labeled_data
+    operation: get_labeled_data.get_labeled_data
+    arguments:
+      n: 6
+
   - node_name: data_eng
-    inputs: fetch.raw_data
+    inputs: labeled_data.labeled_data
     outputs: engg_data
     operation: data_clean.feature_eng
     arguments:
@@ -29,13 +36,6 @@ graph:
       ohe_features: ['introduced_body', 'bill_type']
       summed_features: ['role_name', 'party_id']
       other_features: ['final_status']
-
-  - node_name: labeled_data
-    inputs: [data_eng.engg_data, progress.bill_progress]
-    outputs: labeled_data
-    operation: get_labeled_data.get_labeled_data
-    arguments:
-      n: 6
 
   - node_name: split
     inputs: labeled_data.labeled_data

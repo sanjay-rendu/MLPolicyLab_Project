@@ -30,35 +30,3 @@ class logistic_regression_trainer(BaseOperator):
         model.fit(X, y)
 
         self.outputs["model"].write(model)
-
-
-class accuracy(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "val": Pandas_Dataframe(self.node.inputs[0]),
-            "model": Pickle_Obj(self.node.inputs[1])
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "accuracy": File_Txt(self.node.outputs[0])
-        }
-
-    def run(self, target, threshold):
-        df = self.inputs["val"].read()
-        model = self.inputs["model"].read()
-
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
-
-        y_pred = model.predict(X)
-        y_pred = np.array(y_pred > threshold, dtype=np.float)
-
-        acc = accuracy_score(y, y_pred)
-
-        self.outputs["accuracy"].write(str(acc))

@@ -5,9 +5,9 @@ inputs:
   sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/bill.sql"
   sql_loc_progress: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
 outputs:
-  train_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/train_report.txt'
-  test_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/test_report.txt'
-  val_accuracy: '/data/groups/bills3/mlpp_data_store/skeleton1/val_report.txt'
+  train_output: '/data/groups/bills3/mlpp_data_store/skeleton1/train_report.txt'
+  test_output: '/data/groups/bills3/mlpp_data_store/skeleton1/test_report.txt'
+  val_output: '/data/groups/bills3/mlpp_data_store/skeleton1/val_report.txt'
 
 graph:
   - node_name: fetch_bill_data
@@ -56,24 +56,24 @@ graph:
 
   - node_name: train
     inputs: [split.train, model_logistic_regression.model]
-    outputs: train_accuracy
-    operation: model.accuracy
+    outputs: train_output
+    operation: evaluate.evaluate
     arguments:
       target: final_status
       threshold: 0.5
 
   - node_name: validate
     inputs: [split.val, model_logistic_regression.model]
-    outputs: val_accuracy
-    operation: model.accuracy
+    outputs: val_output
+    operation: evaluate.evaluate
     arguments:
       target: final_status
       threshold: 0.5
 
   - node_name: test
     inputs: [split.test, model_logistic_regression.model]
-    outputs: test_accuracy
-    operation: model.accuracy
+    outputs: test_output
+    operation: evaluate.evaluate
     arguments:
       target: final_status
       threshold: 0.5

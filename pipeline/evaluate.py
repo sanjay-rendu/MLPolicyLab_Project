@@ -16,7 +16,8 @@ class evaluate(BaseOperator):
     @property
     def outputs(self):
         return {
-            "report": File_Txt(self.node.outputs[0])
+            "output": File_Txt(self.node.outputs[0]),
+            "metrics": File_Txt(self.node.outputs[1])
         }
 
     def run(self, target, threshold):
@@ -38,5 +39,5 @@ class evaluate(BaseOperator):
         df['pred_probability'] = y_prob
         df = df.to_csv(sep=' ', index=False)
 
-        self.outputs["report"].write('Accuracy:' + str(acc))
-        self.outputs["report"].write(df)
+        self.outputs["output"].write(df)
+        self.outputs["matrics"].write('Accuracy:' + str(acc))

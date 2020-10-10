@@ -40,4 +40,4 @@ class evaluate(BaseOperator):
         df = df.to_csv(sep=' ', index=False)
 
         self.outputs["output"].write(df)
-        self.outputs["matrics"].write('Accuracy:' + str(acc))
+        self.outputs["metrics"].write('Accuracy:' + str(acc))

@@ -34,6 +34,8 @@ List of other requirements for this project can be found in requirements.txt in 
  #### 2.1 Register an experiment definition by its name
  `daggit init /PATH/TO/EXPERIMENT.yaml`
  
+ Note: This is a one time process to register an experiment config file (yaml). Future edits to the registered yaml file will be automatically be reflected in the DAG. 
+ 
  #### 2.2 Run the experiment
  To run the experiment: `daggit run EXPERIMENT_NAME`  
  To re-run only the nodes that previously failed: `daggit run --clear_failed EXPERIMENT_NAME` \

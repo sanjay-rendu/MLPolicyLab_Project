@@ -20,7 +20,7 @@ List of other requirements for this project can be found in requirements.txt in 
  `export DAGGIT_HOME=/PATH/TO/FOLDER` (intermediate results of the pipeline will be saved here) \
  `export daggit_extra=/PATH/TO/PYTHON/MODULE` (directory location of `pipeline` module that contains node definitions for this project)
  
- Note: Current settings on the remote machine\
+ Note: Current settings to add to `.bashrc` in your user home directory\
  `export DAGGIT_HOME="/data/groups/bills3/vrenduch/DAGGIT_HOME"`\
 `export daggit_extra="/data/groups/bills3/mlpp_project_home/pipeline"`
  

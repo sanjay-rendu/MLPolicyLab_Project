@@ -44,6 +44,6 @@ List of other requirements for this project can be found in requirements.txt in 
  Note: EXPERIMENT_NAME is found on the first line of the experiment config (yaml)
  
  #### 2.3 Monitoring DAG and node run status
- We can use airflow's UI to monitor if the nodes have successfully completed their tasks and use task logs to debug the nodes \
+ We can use [airflow's UI](https://airflow.apache.org/docs/stable/ui.html) to monitor if the nodes have successfully completed their tasks and use task logs to debug the nodes \
  `airflow webserver -p 8080` (starts airflow webserver on port 8080)
  

@@ -35,7 +35,7 @@ List of other requirements for this project can be found in requirements.txt in 
  `daggit init /PATH/TO/EXPERIMENT.yaml`
  
  #### 2.2 Run the experiment
- To run the experiment: `daggit run EXPERIMENT_NAME` \ 
+ To run the experiment: `daggit run EXPERIMENT_NAME`  
  To re-run only the nodes that previously failed: `daggit run --clear_failed EXPERIMENT_NAME` \
  To re-run all the nodes: `daggit run --clear_all EXPERIMENT_NAME` 
  

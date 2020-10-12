@@ -1,4 +1,4 @@
-# Instructions to run a experiment
+# Instructions to run an experiment
 
 ## 1. Setup
 

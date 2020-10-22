@@ -21,7 +21,7 @@ class evaluate(BaseOperator):
         }
 
     def run(self, target, threshold):
-        df = self.inputs["val"].read()
+        df = self.inputs["data"].read()
         model = self.inputs["model"].read()
 
         features = list(set(list(df.columns)) - {target})

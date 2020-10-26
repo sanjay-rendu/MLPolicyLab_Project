@@ -55,7 +55,7 @@ class baseline(BaseOperator):
             "metrics": File_Txt(self.node.outputs[0])
         }
 
-    def baserate(test):
+    def baserate(self, test):
         ''' Predicts that every bill will pass. Defines the baserate of bill passage.
         returns:
             preds: list of predictions
@@ -65,7 +65,7 @@ class baseline(BaseOperator):
         score = [1] * len(test.index)
         return preds, score
 
-    def common_sense(train, colnames={'dem': 'number_dems', 'repub': 'number_republicans'}):
+    def common_sense(self, train, colnames={'dem': 'number_dems', 'repub': 'number_republicans'}):
         ''' Score is # dem sponsors - # repub sponsors
         args:
             test: pandas.dataframe

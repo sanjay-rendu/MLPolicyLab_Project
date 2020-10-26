@@ -1,6 +1,7 @@
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
 from datetime import datetime, timedelta
+import pandas as pd
 
 from sklearn.model_selection import train_test_split
 
@@ -55,6 +56,7 @@ class timeSplit(BaseOperator):
         :return: [train, val] data
         """
         all_data = self.inputs["all_data"].read()
+        all_data.present_date = pd.to_datetime(all_data.present_date)
 
         present_date = datetime.strptime("2019-06-30", "%Y-%m-%d")
         validation_date = present_date + timedelta(days=validation_window)

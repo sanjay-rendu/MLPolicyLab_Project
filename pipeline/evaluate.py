@@ -77,7 +77,7 @@ class baseline(BaseOperator):
         preds = [x > 0 for x in score]
         return preds, score
 
-    def run(self, target, threshold):
+    def run(self):
         df = self.inputs["data"].read()
         preds, score = self.baserate(df)
         preds1, score1 = self.common_sense(df)

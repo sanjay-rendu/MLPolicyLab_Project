@@ -81,5 +81,8 @@ class baseline(BaseOperator):
         df = self.inputs["data"].read()
         preds, score = self.baserate(df)
         preds1, score1 = self.common_sense(df)
+
+
+
         self.outputs["metrics"].write(str(preds) + '\n' + str(preds1) + '\n' + str(score1))
 

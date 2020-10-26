@@ -32,3 +32,11 @@ graph:
     arguments:
       selected_features: ['days_to_final', 'days_from_introduction',
                           'number_dems', 'number_republicans', 'is_bipartisan', 'label']
+
+  - node_name: model_logistic_regression
+    inputs: select.fil_train
+    outputs: model
+    operation: model.logistic_regression_trainer
+    arguments:
+      target: label
+      max_iter: 200

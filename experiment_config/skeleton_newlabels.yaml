@@ -24,3 +24,11 @@ graph:
     inputs: split.val
     outputs: baseline_metrics
     operation: evaluate.baseline
+
+  - node_name: select
+    inputs: [split.train, split.val]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final', 'days_from_introduction',
+                          'number_dems', 'number_republicans', 'is_bipartisan', 'label']

@@ -56,3 +56,25 @@ class feature_eng(BaseOperator):
         df.head(1) #check
 
         self.outputs["df"].write(df)
+
+class feature_selector(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {"train": Pandas_Dataframe(self.node.inputs[0]),
+                "test": Pandas_Dataframe(self.node.inputs[1])}
+
+    @property
+    def outputs(self):
+        return {"filtered_train": Pandas_Dataframe(self.node.outputs[0]),
+                "filtered_test": Pandas_Dataframe(self.node.outputs[1])}
+
+    def run(self, selected_features):
+        train = self.inputs["train"].read()
+        train = train[selected_features]
+
+        test = self.inputs["test"].read()
+        test = test[selected_features]
+
+        self.outputs["filtered_train"].write(train)
+        self.outputs["filtered_test"].write(test)

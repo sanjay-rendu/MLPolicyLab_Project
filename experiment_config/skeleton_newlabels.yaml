@@ -1,0 +1,14 @@
+experiment_name: skeleton2
+owner: bills3_group
+
+inputs:
+  sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/latestLabels.sql"
+
+outputs:
+  bill_data: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/fetch_labeled_data/bill_data.csv"
+
+graph:
+  - node_name: fetch_labeled_data
+    inputs: sql_loc_bill
+    outputs: bill_data
+    operation: data_io.fetch_sql

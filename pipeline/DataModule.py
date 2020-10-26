@@ -203,3 +203,22 @@ with open(csv_file, 'w') as csvfile:
          writer.writerow(row)
 csvfile.close()
 
+# getting the new date labels
+sql = 'select bill_id, session_id, introduced_date, final_date, present_date, (final_date - present_date) as "days_to_final", label from sketch.bill_processed order by present_date'
+
+result_set = engine.execute(sql)
+for rec in result_set:
+    print(rec)
+    break
+#convert to dictionary
+all_data = [{column: value for column, value in rowproxy.items()} for rowproxy in result_set]
+headers = [i for i in all_data[0].keys()]
+    
+csv_file= 'bill_date_label_csv'
+
+with open(csv_file, 'w') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=headers)
+    writer.writeheader()
+    for row in all_data:
+        writer.writerow(row)
+csvfile.close()

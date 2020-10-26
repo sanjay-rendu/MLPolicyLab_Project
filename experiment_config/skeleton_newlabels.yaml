@@ -18,3 +18,5 @@ graph:
     inputs: fetch_labeled_data.bill_data
     outputs: [train, val]
     operation: split.timeSplit
+    arguments:
+      prediction_date: '2019-06-30'

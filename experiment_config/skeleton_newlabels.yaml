@@ -5,8 +5,7 @@ inputs:
   sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/latestLabels.sql"
 
 outputs:
-  train: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/fetch_labeled_data/train.csv"
-  val: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/fetch_labeled_data/val.csv"
+  baseline_metrics: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/baseline/baseline_metrics.txt"
 
 graph:
   - node_name: fetch_labeled_data
@@ -20,3 +19,7 @@ graph:
     operation: split.timeSplit
     arguments:
       prediction_date: '2019-06-30'
+
+  - node_name: baseline
+    inputs: split.val
+    outputs: baseline_metrics

@@ -122,7 +122,7 @@ class predict_val(BaseOperator):
         y_prob = model.predict(X)
         y_pred = np.array(y_prob > threshold, dtype=np.float)
 
-        output = pd.DataFrame(list(zip(y,y_pred,y_prob)), columns=['label', 'pred', 'score'])
+        output = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
 
         self.outputs["prediction"].write(output)
 

@@ -191,6 +191,9 @@ class topk_metric(BaseOperator):
             recall.append(temp[1])
 
         self.plot_prk(precision, recall, graph_loc)
-        self.outputs['metrics'].write(self.topk(result, k=.3, metric='both'))
+
+        precision_30, recall_30 = self.topk(result, k=.3, metric='both')
+
+        self.outputs['metrics'].write("Precision @ 30%: {} \n Recall @ 30%: {}".format(precision_30, recall_30))
 
 

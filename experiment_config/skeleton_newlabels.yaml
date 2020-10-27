@@ -58,7 +58,7 @@ graph:
     arguments:
       target: label
       threshold: 0.5
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/graph/model
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model.png
 
   - node_name: topk_baserate
     inputs: baseline.baserate
@@ -67,7 +67,7 @@ graph:
     arguments:
       target: label
       threshold: 0.5
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/graph/base
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base.png
 
   - node_name: topk_commonsense
     inputs: baseline.commonsense
@@ -76,4 +76,4 @@ graph:
     arguments:
       target: label
       threshold: 0.5
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/graph/commonsense
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense.png

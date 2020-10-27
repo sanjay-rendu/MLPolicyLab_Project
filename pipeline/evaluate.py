@@ -170,9 +170,7 @@ class topk_metric(BaseOperator):
         else:
             return (precision_score(labels, preds), recall_score(labels, preds))
 
-    def plot_prk(self, precisions, recalls, model_name, graph_loc):
-
-        # graph_loc is folder where the graphs are writtten
+    def plot_prk(self, precisions, recalls, graph_loc):
 
         assert len(precisions) == len(recalls)
         x = np.linspace(0, 1, len(precisions))
@@ -181,7 +179,7 @@ class topk_metric(BaseOperator):
         plt.legend(['Precision', 'Recall'])
         plt.xlabel('Percent of Total Bills')
         plt.title('PR-k of model {}'.format(model_name))
-        plt.savefig('{}/prk_graph_{}.png'.format(graph_loc, model_name))
+        plt.savefig(graph_loc)
 
     def run(self, target, threshold, graph_loc):
         result = self.inputs["predictions"].read()
@@ -192,7 +190,7 @@ class topk_metric(BaseOperator):
             precision.append(temp[0])
             recall.append(temp[1])
 
-        self.plot_prk(precision, recall, 'test', graph_loc)
+        self.plot_prk(precision, recall, graph_loc)
         self.outputs['metrics'].write(self.topk(result, k=.3, metric='both'))
 
 

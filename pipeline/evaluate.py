@@ -178,7 +178,7 @@ class topk_metric(BaseOperator):
         plt.plot(x, recalls)
         plt.legend(['Precision', 'Recall'])
         plt.xlabel('Percent of Total Bills')
-        plt.title('PR-k of model {}'.format(model_name))
+        plt.title('PR-k of model')
         plt.savefig(graph_loc)
 
     def run(self, target, threshold, graph_loc):

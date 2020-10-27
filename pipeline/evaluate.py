@@ -87,8 +87,8 @@ class baseline(BaseOperator):
         preds, score = self.baserate(df)
         preds1, score1 = self.common_sense(df)
 
-        baserate = pd.DataFrame(list(zip(y,preds, score)), columns=['label', 'pred', 'score'])
-        common_sense = pd.DataFrame(list(zip(y,preds1, score1)), columns=['label', 'pred', 'score'])
+        baserate = pd.DataFrame(list(zip(list(df.label.values),preds, score)), columns=['label', 'pred', 'score'])
+        common_sense = pd.DataFrame(list(zip(list(df.label.values),preds1, score1)), columns=['label', 'pred', 'score'])
 
 
         self.outputs["baserate"].write(baserate)

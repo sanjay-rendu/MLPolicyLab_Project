@@ -57,7 +57,7 @@ class baseline(BaseOperator):
     def outputs(self):
         return {
             "baserate": Pandas_Dataframe(self.node.outputs[0]),
-            "commonsense": Pandas_Dataframe(self.node.outputs[0])
+            "commonsense": Pandas_Dataframe(self.node.outputs[1])
         }
 
     def baserate(self, test):

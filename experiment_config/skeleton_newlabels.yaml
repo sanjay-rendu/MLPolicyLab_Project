@@ -53,7 +53,7 @@ graph:
 
   - node_name: topk_model
     inputs: validate.val_output
-    outputs: metrics
+    outputs: model_metrics
     operation: evaluate.topk_metric
     arguments:
       target: label

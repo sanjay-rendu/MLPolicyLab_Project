@@ -48,7 +48,7 @@ class timeSplit(BaseOperator):
             "val_data": Pandas_Dataframe(self.node.outputs[1])
         }
 
-    def run(self, prediction_date, validation_window=180):
+    def run(self, prediction_date, validation_end_date ,label_window=180):
         """
         Splits data in training and validation splits based on the date of prediction
         :param prediction_date: date in %Y-%m-%d format
@@ -58,13 +58,12 @@ class timeSplit(BaseOperator):
         all_data = self.inputs["all_data"].read()
         all_data.present_date = pd.to_datetime(all_data.present_date)
 
-        present_date = datetime.strptime("2019-06-30", "%Y-%m-%d")
-        validation_date = present_date + timedelta(days=validation_window)
+        present_date = datetime.strptime(prediction_date, "%Y-%m-%d")
+        label_date = present_date + timedelta(days=label_window)
+        validation_date = datetime.strptime(validation_end_date, "%Y-%m-%d")
 
         train_data = all_data[all_data.present_date < present_date]
-        validation_data = all_data[(all_data.present_date >= present_date) &
+        validation_data = all_data[(all_data.present_date >= label_date) &
                                    (all_data.present_date < validation_date)]
-        validation_data = validation_data.sort_values('present_date', ascending=False).groupby('bill_id',
-                                                                                               as_index=False).first()
         self.outputs["train_data"].write(train_data)
         self.outputs["val_data"].write(validation_data)

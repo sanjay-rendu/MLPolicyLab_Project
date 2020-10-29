@@ -11,27 +11,29 @@ def topk(result, k=.3, colnames=None, metric='precision'):
         k: float, decimal of top scores to check
             default: .3
         colnames: dict, used to specify column name for each feature of interest.
-            format: {'label': **colname**, 'pred': **colname**, 'score': **colname**}
-            default: {'label': 'label', 'pred': 'pred', 'score': 'score'}
+            format: {'label': **colname**, 'score': **colname**}
+            default: {'label': 'label', 'score': 'score'}
         metric: str, either 'precision', 'recall', or 'both'
             default: 'precision'
     returns:
         precision or recall score. if both, then returns a tuple of (precision, recall)
     """
     if colnames is None:
-        colnames = {'label': 'label', 'pred': 'pred', 'score': 'score'}
+        colnames = {'label': 'label','score': 'score'}
     result = result.sort_values(by=[colnames['score']], ascending=False)
     df_len = len(result.index)
-    top_k = result.head(math.floor(df_len*k))
-    labels = top_k[colnames['label']].tolist()
-    preds = top_k[colnames['pred']].tolist()
+    preds = [1]*math.floor(df_len*k)
+    preds += [0]*(df_len-math.floor(df_len*k))
+    labels = result[colnames['label']].tolist()
+
+    result['preds'] = preds
 
     if metric == 'precision':
-        return precision_score(labels, preds)
+        return precision_score(labels, preds), result
     elif metric == 'recall':
-        return recall_score(labels, preds)
+        return recall_score(labels, preds), result
     else:
-        return (precision_score(labels,preds), recall_score(labels,preds))
+        return (precision_score(labels,preds), recall_score(labels,preds)), result
 
 def plot_prk(precisions, recalls, model_name):
     assert len(precisions) == len(recalls)

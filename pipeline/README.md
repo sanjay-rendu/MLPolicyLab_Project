@@ -22,7 +22,8 @@ List of other requirements for this project can be found in requirements.txt in 
  
  Note: Current settings to add to `.bashrc` in your user home directory\
  `export DAGGIT_HOME="/data/groups/bills3/vrenduch/DAGGIT_HOME"`\
-`export daggit_extra="/data/groups/bills3/mlpp_project_home/pipeline"`
+`export daggit_extra="/data/groups/bills3/mlpp_project_home/pipeline"`\
+`export AIRFLOW_HOME="/data/groups/bills3/airflow"`
  
  #### 1.4 Define Postgres Hook to connect to the project database
  We use airflow's Postgres Hook to manage connection to the project database. More details on managing the connection can be found [here](https://airflow.apache.org/docs/stable/howto/connection/index.html). 

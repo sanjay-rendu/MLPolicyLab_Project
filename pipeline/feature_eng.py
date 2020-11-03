@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.feature_extraction.text import TdidfVectorizer, CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
@@ -58,5 +58,5 @@ class topic_model(BaseOperator):
         test_df[nmf_cols] = nmf.transform(tfidf)
         test_df[lda_cols] = lda.transform(tf)
         self.outputs["text_train"].write(df)
-        self.outputs["text_val"].write(
+        self.outputs["text_val"].write(test_df)
 

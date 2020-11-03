@@ -6,6 +6,7 @@ inputs:
 
 outputs:
   model_metrics: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
+  model_preds: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_preds.csv"
   metrics_base: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics.txt"
   metrics_commonsense: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics.txt"
 
@@ -27,6 +28,11 @@ graph:
     inputs: split.val
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
+
+  - node_name: feature_eng
+    inputs: [split.train, split.val]
+    outputs: [text_train, text_val]
+    operation: feature_eng.topic_model
 
   - node_name: select
     inputs: [split.train, split.val]
@@ -54,7 +60,7 @@ graph:
 
   - node_name: topk_model
     inputs: validate.val_output
-    outputs: model_metrics
+    outputs: [model_metrics, model_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
@@ -63,7 +69,7 @@ graph:
 
   - node_name: topk_baserate
     inputs: baseline.baserate
-    outputs: metrics_base
+    outputs: [metrics_base, base_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
@@ -72,7 +78,7 @@ graph:
 
   - node_name: topk_commonsense
     inputs: baseline.commonsense
-    outputs: metrics_commonsense
+    outputs: [metrics_commonsense, commonsense_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label

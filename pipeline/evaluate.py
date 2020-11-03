@@ -141,7 +141,7 @@ class topk_metric(BaseOperator):
             "metrics": File_Txt(self.node.outputs[0])
         }
 
-    def topk(result, k=.3, colnames=None, metric='precision'):
+    def topk(self, result, k=.3, colnames=None, metric='precision'):
         """ Returns the metric of the top k% of bills
         args:
             result: pandas.dataframe, csv with predicted labels, score, and true labels. Bill passed should be labeled with 1.

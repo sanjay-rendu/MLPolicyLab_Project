@@ -172,14 +172,19 @@ class topk_metric(BaseOperator):
 
     def plot_prk(self, precisions, recalls, graph_loc):
 
+        fig, ax = plt.subplots()
+
         assert len(precisions) == len(recalls)
         x = np.linspace(0, 1, len(precisions))
-        plt.plot(x, precisions)
-        plt.plot(x, recalls)
-        plt.legend(['Precision', 'Recall'])
-        plt.xlabel('Percent of Total Bills')
-        plt.title('PR-k of model')
-        plt.savefig(graph_loc)
+        ax.plot(x, precisions, color="red", marker="o")
+        ax.set_xlabel('Percent of Total Bills')
+        ax.set_ylabel("Precision", color="red")
+        ax.set_title('PR-k of model')
+
+        ax2 = ax.twinx()
+        ax2.plot(x, recalls,color="blue",marker="o")
+        ax2.set_ylabel("Recall", color="blue")
+        fig.savefig(graph_loc)
 
     def run(self, target, threshold, graph_loc):
         result = self.inputs["predictions"].read()

@@ -138,7 +138,8 @@ class topk_metric(BaseOperator):
     @property
     def outputs(self):
         return {
-            "metrics": File_Txt(self.node.outputs[0])
+            "metrics": File_Txt(self.node.outputs[0]),
+            "topk_prediction": Pandas_Dataframe(self.node.outputs[1])
         }
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):
@@ -193,14 +194,16 @@ class topk_metric(BaseOperator):
         precision = []
         recall = []
         for k in range(1, 11):
-            temp = self.topk(result, k=k / 10, metric='both')
+            temp, df_preds = self.topk(result, k=k / 10, metric='both')
             precision.append(temp[0])
             recall.append(temp[1])
 
         self.plot_prk(precision, recall, graph_loc)
 
-        precision_30, recall_30 = self.topk(result, k=.3, metric='both')
+        results, df_preds = self.topk(result, k=.3, metric='both')
+        precision_30, recall_30 = results
 
         self.outputs['metrics'].write("Precision @ 30%: {} \nRecall @ 30%: {}".format(precision_30, recall_30))
+        self.outputs['topk_predictions'].write(df_preds)
 
 

@@ -192,7 +192,7 @@ class topk_metric(BaseOperator):
         result = self.inputs["predictions"].read()
         precision = []
         recall = []
-        for k in range(10):
+        for k in range(1, 11):
             temp = self.topk(result, k=k / 10, metric='both')
             precision.append(temp[0])
             recall.append(temp[1])

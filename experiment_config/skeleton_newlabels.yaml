@@ -20,8 +20,8 @@ graph:
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
-      prediction_date: '2019-06-30'
-      validation_end_date: '2020-06-30'
+      prediction_date: '2014-01-01'
+      validation_end_date: '2015-07-01'
 
   - node_name: baseline
     inputs: split.val

@@ -1,7 +1,4 @@
-
-select *
-from (
-		select bp.bill_id,
+select bp.bill_id,
 				bp.session_id, 
 				bp.introduced_date, 
 				bp.final_date, 
@@ -26,7 +23,4 @@ from (
 																	end) as "republicans"
 													from ml_policy_class.bill_sponsors) b
 											group by b.bill_id) m) rc on rc.bill_id = bp.bill_id
-		) newbp
-	join (select bill_id, doc, bill_description from ml_policy_class.bill_texts) bt
-		on bt.bill_id = newbp.bill_id
 order by present_date 

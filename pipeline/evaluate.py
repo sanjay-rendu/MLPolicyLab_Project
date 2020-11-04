@@ -139,7 +139,7 @@ class topk_metric(BaseOperator):
     def outputs(self):
         return {
             "metrics": File_Txt(self.node.outputs[0]),
-            "topk_prediction": Pandas_Dataframe(self.node.outputs[1])
+            "topk_predictions": Pandas_Dataframe(self.node.outputs[1])
         }
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):

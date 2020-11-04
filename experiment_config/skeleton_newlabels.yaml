@@ -29,11 +29,6 @@ graph:
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
 
-  - node_name: feature_eng
-    inputs: [split.train, split.val]
-    outputs: [text_train, text_val]
-    operation: feature_eng.topic_model
-
   - node_name: select
     inputs: [split.train, split.val]
     outputs: [fil_train, fil_val]

@@ -41,7 +41,7 @@ graph:
     operation: evaluate.baseline
 
   - node_name: select
-    inputs: [feature.train, feature.val]
+    inputs: [feature_eng.train, feature_eng.val]
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:

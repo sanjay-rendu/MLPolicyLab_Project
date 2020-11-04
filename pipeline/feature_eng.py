@@ -9,16 +9,16 @@ class topic_model(BaseOperator):
 
     @property
     def inputs(self):
-        return {"df": Pandas_Dataframe(self.node.inputs[0]),
-                "train_ids": Pickle_Obj(self.node.inputs[1]),
-                "test_ids": Pickle_Obj(self.node.inputs[2])}
+        return {"train": Pandas_Dataframe(self.node.inputs[0]),
+                "val": Pandas_Dataframe(self.node.inputs[1]),
+                "bill_texts": Pandas_Dataframe(self.node.inputs[2])}
 
     @property
     def outputs(self):
         return {"train": Pandas_Dataframe(self.node.outputs[0]),
                 "val": Pandas_Dataframe(self.node.outputs[1])}
 
-        def run(self, col_names = {"bill_ids": "bill_ids", "doc": "doc"}, num_features = 1000, num_topics = 10):
+    def run(self, col_names = {"bill_ids": "bill_id", "doc": "doc"}, num_features = 1000, num_topics = 10):
         """
         Engineers features out of raw text data and bill_ids for train/test splits.
         Arguments:
@@ -32,13 +32,14 @@ class topic_model(BaseOperator):
             Returns:
                 train and test pandas dataframe of text features
         """
-        df = self.inputs["df"].read()
-        train_ids = self.inputs["train_ids"].read()
-        test_ids = self.inputs["test_ids"].read()
+        train = self.inputs["train"].read()
+        val = self.inputs["val"].read()
+        bill_texts = self.inputs["bill_texts"].read()
+        train_ids = df[col_names["bill_ids"]].unique()
         
-        train_mask = df[col_names["bill_ids"]].isin(train_ids)
-        df_train = df[train_mask]
-        df_test = df[~train_mask]
+        train_mask = bill_texts[col_names["bill_ids"]].isin(train_ids)
+        df_train = bill_texts[train_mask]
+        df_test = bill_texts[~train_mask]
         train_docs = df_train[col_names["doc"]].tolist()
         test_docs = df_test[col_names["doc"]].tolist()
 
@@ -61,11 +62,14 @@ class topic_model(BaseOperator):
         lda_cols = ["topic_{t}".format(t=t) for t in range(0,lda_vals.shape[1])]
         df_train[nmf_cols] = nmf_vals
         df_train[lda_cols] = lda_vals
+        train = train.join(df_train.drop([col_names["doc"]], axis=1).set_index(col_names["bill_ids"]), on=col_names["bill_ids"])
 
         tf = tf_vectorizer.transform(test_docs)
         tfidf = tfidf_vectorizer.transform(test_docs)
         df_test[nmf_cols] = nmf.transform(tfidf)
         df_test[lda_cols] = lda.transform(tf)
-        self.outputs["train"].write(df)
-        self.outputs["val"].write(test_df)
+        val = val.join(df_test.drop([col_names["doc"]], axis=1).set_index(col_names["bill_ids"]), on=col_names["bill_ids"])
+        
+        self.outputs["train"].write(train)
+        self.outputs["val"].write(val)
 

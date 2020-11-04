@@ -30,18 +30,26 @@ graph:
       prediction_date: '2014-01-01'
       validation_end_date: '2015-07-01'
 
+  - node_name: feature_eng
+    inputs: [split.train, split.val, fetch_bill_text.bill_text]
+    outputs: [train, val]
+    operation: feature_eng.topic_model
+
   - node_name: baseline
     inputs: split.val
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
 
   - node_name: select
-    inputs: [split.train, split.val]
+    inputs: [feature.train, feature.val]
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
       selected_features: ['days_to_final', 'days_from_introduction',
-                          'number_dems', 'number_republicans', 'is_bipartisan', 'label']
+                          'number_dems', 'number_republicans', 'is_bipartisan', 'label',
+                          'topic_0', 'topic_1', 'topic_2', 'topic_3', 'topic_4', 'topic_5',
+                          'topic_6', 'topic_7', 'topic_8', 'topic_9', 'nmf_0', 'nmf_1', 'nmf_2',
+                          'nmf_3', 'nmf_4', 'nmf_5', 'nmf_6', 'nmf_7', 'nmf_8', 'nmf_9']
 
   - node_name: model_logistic_regression
     inputs: select.fil_train

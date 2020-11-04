@@ -3,6 +3,7 @@ owner: bills3_group
 
 inputs:
   sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/latestLabels.sql"
+  sql_bill_text: "/data/groups/bills3/mlpp_project_home/experiment_config/bill_texts.sql"
 
 outputs:
   model_metrics: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
@@ -14,6 +15,11 @@ graph:
   - node_name: fetch_labeled_data
     inputs: sql_loc_bill
     outputs: bill_data
+    operation: data_io.fetch_sql
+
+  - node_name: fetch_bill_text
+    inputs: sql_bill_text
+    outputs: bill_text
     operation: data_io.fetch_sql
 
   - node_name: split

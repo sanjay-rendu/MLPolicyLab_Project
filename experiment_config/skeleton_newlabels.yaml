@@ -6,10 +6,9 @@ inputs:
   sql_bill_text: "/data/groups/bills3/mlpp_project_home/experiment_config/bill_texts.sql"
 
 outputs:
-  model_metrics: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
-  model_preds: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_preds.csv"
-  metrics_base: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics.txt"
-  metrics_commonsense: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics.txt"
+  metrics_lr_model3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
+  metrics_base3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics.txt"
+  metrics_commonsense3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics.txt"
 
 graph:
   - node_name: fetch_labeled_data
@@ -22,7 +21,26 @@ graph:
     outputs: bill_text
     operation: data_io.fetch_sql
 
-  - node_name: split
+## set 1: train [2009-01-01, 2010-01-01); test [2010-01-01 + 180 days, 2011-07-01) ##
+  - node_name: split1
+    inputs: fetch_labeled_data.bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2010-01-01'
+      validation_end_date: '2011-07-01'
+
+## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
+  - node_name: split2
+    inputs: fetch_labeled_data.bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2012-01-01'
+      validation_end_date: '2013-07-01'
+
+## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
+  - node_name: split3
     inputs: fetch_labeled_data.bill_data
     outputs: [train, val]
     operation: split.timeSplit
@@ -30,18 +48,18 @@ graph:
       prediction_date: '2014-01-01'
       validation_end_date: '2015-07-01'
 
-  - node_name: feature_eng
-    inputs: [split.train, split.val, fetch_bill_text.bill_text]
+  - node_name: feature_eng3
+    inputs: [split3.train, split3.val, fetch_bill_text.bill_text]
     outputs: [train, val]
     operation: feature_eng.topic_model
 
-  - node_name: baseline
-    inputs: split.val
+  - node_name: baseline3
+    inputs: split3.val
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
 
-  - node_name: select
-    inputs: [feature_eng.train, feature_eng.val]
+  - node_name: select3
+    inputs: [feature_eng3.train, feature_eng3.val]
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
@@ -51,16 +69,16 @@ graph:
                           'topic_6', 'topic_7', 'topic_8', 'topic_9', 'nmf_0', 'nmf_1', 'nmf_2',
                           'nmf_3', 'nmf_4', 'nmf_5', 'nmf_6', 'nmf_7', 'nmf_8', 'nmf_9']
 
-  - node_name: model_logistic_regression
-    inputs: select.fil_train
+  - node_name: model_logistic_regression3
+    inputs: select3.fil_train
     outputs: model
     operation: model.logistic_regression_trainer
     arguments:
       target: label
       max_iter: 200
 
-  - node_name: validate
-    inputs: [select.fil_val, model_logistic_regression.model]
+  - node_name: validate3
+    inputs: [select3.fil_val, model_logistic_regression3.model]
     outputs: val_output
     operation: evaluate.predict_val
     arguments:
@@ -68,28 +86,37 @@ graph:
       threshold: 0.5
 
   - node_name: topk_model
-    inputs: validate.val_output
-    outputs: [model_metrics, model_preds]
+    inputs: validate3.val_output
+    outputs: [metrics_lr_model3, model_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
       threshold: 0.5
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model.png
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model3.png
 
-  - node_name: topk_baserate
-    inputs: baseline.baserate
-    outputs: [metrics_base, base_preds]
+  - node_name: topk_baserate3
+    inputs: baseline3.baserate
+    outputs: [metrics_base3, base_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
       threshold: 0.5
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base.png
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base3.png
 
-  - node_name: topk_commonsense
-    inputs: baseline.commonsense
-    outputs: [metrics_commonsense, commonsense_preds]
+  - node_name: topk_commonsense3
+    inputs: baseline3.commonsense
+    outputs: [metrics_commonsense3, commonsense_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
       threshold: 0.5
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense.png
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
+
+## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
+  - node_name: split4
+    inputs: fetch_labeled_data.bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2016-01-01'
+      validation_end_date: '2017-07-01'

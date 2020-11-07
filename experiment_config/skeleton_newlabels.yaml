@@ -85,7 +85,7 @@ graph:
       target: label
       threshold: 0.5
 
-  - node_name: topk_model
+  - node_name: topk_model3
     inputs: validate3.val_output
     outputs: [metrics_lr_model3, model_preds]
     operation: evaluate.topk_metric

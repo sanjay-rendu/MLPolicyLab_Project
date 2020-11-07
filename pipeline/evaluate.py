@@ -179,13 +179,13 @@ class topk_metric(BaseOperator):
 
         assert len(precisions) == len(recalls)
         x = np.linspace(0, 1, len(precisions))
-        ax.plot(x, precisions, color="red", marker="o")
+        ax.plot(x, precisions, color="red")
         ax.set_xlabel('Percent of Total Bills')
         ax.set_ylabel("Precision", color="red")
         ax.set_title('PR-k of model')
 
         ax2 = ax.twinx()
-        ax2.plot(x, recalls,color="blue",marker="o")
+        ax2.plot(x, recalls,color="blue")
         ax2.set_ylabel("Recall", color="blue")
         fig.savefig(graph_loc)
 
@@ -193,8 +193,8 @@ class topk_metric(BaseOperator):
         result = self.inputs["predictions"].read()
         precision = []
         recall = []
-        for k in range(1, 11):
-            temp, df_preds = self.topk(result, k=k / 10, metric='both')
+        for k in range(1, 101):
+            temp, df_preds = self.topk(result, k=k / 100, metric='both')
             precision.append(temp[0])
             recall.append(temp[1])
 

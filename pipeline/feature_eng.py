@@ -69,6 +69,7 @@ class topic_model(BaseOperator):
 
         tf = tf_vectorizer.transform(test_docs)
         tfidf = tfidf_vectorizer.transform(test_docs)
+        df_test = df_test.reindex(columns=df_test.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_test[nmf_cols] = nmf.transform(tfidf)
         df_test[lda_cols] = lda.transform(tf)
         val = val.join(df_test.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])

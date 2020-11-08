@@ -36,6 +36,8 @@ class topic_model(BaseOperator):
         val = self.inputs["val"].read()
         bill_texts = self.inputs["bill_texts"].read()
         train_ids = train[col_names["bill_id"]].unique()
+
+        del train
         
         train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
         df_train = bill_texts[train_mask]
@@ -45,12 +47,12 @@ class topic_model(BaseOperator):
 
         tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
         tfidf = tfidf_vectorizer.fit_transform(train_docs)
-        tfidf_feature_names = tfidf_vectorizer.get_feature_names()
+        #tfidf_feature_names = tfidf_vectorizer.get_feature_names()
 
         # LDA can only use raw term counts for LDA because it is a probabilistic graphical model
         tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
         tf = tf_vectorizer.fit_transform(train_docs)
-        tf_feature_names = tf_vectorizer.get_feature_names()
+        #tf_feature_names = tf_vectorizer.get_feature_names()
 
         nmf = NMF(n_components=num_topics, random_state = 1, alpha=.1, l1_ratio=.5, init="nndsvd").fit(tfidf)
         lda = LDA(n_components=num_topics, max_iter=5, learning_method="online", learning_offset=50., random_state=0).fit(tf)

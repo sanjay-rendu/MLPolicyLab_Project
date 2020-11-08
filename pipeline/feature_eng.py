@@ -62,6 +62,7 @@ class topic_model(BaseOperator):
 
         nmf_cols = ["nmf_{t}".format(t=t) for t in range(0,nmf_vals.shape[1])]
         lda_cols = ["topic_{t}".format(t=t) for t in range(0,lda_vals.shape[1])]
+        df_train = df_train.reindex(columns=df_train.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_train[nmf_cols] = nmf_vals
         df_train[lda_cols] = lda_vals
         train = train.join(df_train.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])

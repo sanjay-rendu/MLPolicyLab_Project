@@ -64,7 +64,8 @@ class topic_model(BaseOperator):
         df_train = df_train.reindex(columns=df_train.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_train[nmf_cols] = nmf_vals
         df_train[lda_cols] = lda_vals
-        train = train.join(df_train.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
+        #train = train.join(df_train.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
+        train = train.merge(df_train, on='bill_id', how='left')
 
         tf = tf_vectorizer.transform(test_docs)
         tfidf = tfidf_vectorizer.transform(test_docs)
@@ -72,7 +73,8 @@ class topic_model(BaseOperator):
         df_test = df_test.reindex(columns=df_test.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_test[nmf_cols] = nmf.transform(tfidf)
         df_test[lda_cols] = lda.transform(tf)
-        val = val.join(df_test.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
+        #val = val.join(df_test.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
+        val = val.merge(df_test, on='bill_id', how='left')
         
         self.outputs["train"].write(train)
         self.outputs["val"].write(val)

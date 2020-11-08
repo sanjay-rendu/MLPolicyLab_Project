@@ -36,8 +36,6 @@ class topic_model(BaseOperator):
         val = self.inputs["val"].read()
         bill_texts = self.inputs["bill_texts"].read()
         train_ids = train[col_names["bill_id"]].unique()
-
-        del train
         
         train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
         df_train = bill_texts[train_mask]

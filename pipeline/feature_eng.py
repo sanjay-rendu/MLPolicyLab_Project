@@ -51,12 +51,15 @@ class topic_model(BaseOperator):
         tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
         tf = tf_vectorizer.fit_transform(train_docs)
         #tf_feature_names = tf_vectorizer.get_feature_names()
+        del train_docs
 
         nmf = NMF(n_components=num_topics, random_state = 1, alpha=.1, l1_ratio=.5, init="nndsvd").fit(tfidf)
         lda = LDA(n_components=num_topics, max_iter=5, learning_method="online", learning_offset=50., random_state=0).fit(tf)
 
         nmf_vals = nmf.transform(tfidf)
         lda_vals=lda.transform(tf)
+        del tfidf
+        del tf
 
         nmf_cols = ["nmf_{t}".format(t=t) for t in range(0,nmf_vals.shape[1])]
         lda_cols = ["topic_{t}".format(t=t) for t in range(0,lda_vals.shape[1])]
@@ -66,6 +69,7 @@ class topic_model(BaseOperator):
         df_train[lda_cols] = lda_vals
         #train = train.join(df_train.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
         train = train.merge(df_train, on='bill_id', how='left')
+        del df_train
 
         tf = tf_vectorizer.transform(test_docs)
         tfidf = tfidf_vectorizer.transform(test_docs)
@@ -73,9 +77,11 @@ class topic_model(BaseOperator):
         df_test = df_test.reindex(columns=df_test.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_test[nmf_cols] = nmf.transform(tfidf)
         df_test[lda_cols] = lda.transform(tf)
+        del tfidf
+        del tf
         #val = val.join(df_test.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
         val = val.merge(df_test, on='bill_id', how='left')
-        
+        del df_test
+
         self.outputs["train"].write(train)
         self.outputs["val"].write(val)
-

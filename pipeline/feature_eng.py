@@ -60,6 +60,7 @@ class topic_model(BaseOperator):
 
         nmf_cols = ["nmf_{t}".format(t=t) for t in range(0,nmf_vals.shape[1])]
         lda_cols = ["topic_{t}".format(t=t) for t in range(0,lda_vals.shape[1])]
+        df_train = df_train[["bill_id"]]
         df_train = df_train.reindex(columns=df_train.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_train[nmf_cols] = nmf_vals
         df_train[lda_cols] = lda_vals
@@ -67,6 +68,7 @@ class topic_model(BaseOperator):
 
         tf = tf_vectorizer.transform(test_docs)
         tfidf = tfidf_vectorizer.transform(test_docs)
+        df_test = df_test[["bill_id"]]
         df_test = df_test.reindex(columns=df_test.columns.tolist() + nmf_cols + lda_cols) # add empty columns first
         df_test[nmf_cols] = nmf.transform(tfidf)
         df_test[lda_cols] = lda.transform(tf)

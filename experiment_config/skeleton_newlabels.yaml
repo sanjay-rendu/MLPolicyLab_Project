@@ -18,6 +18,11 @@ graph:
     outputs: bill_data
     operation: data_io.fetch_sql
 
+  - node_name: weekly_snapshots
+     inputs: fetch_labeled_data.bill_data
+     outputs: weekly_bill_data
+     operation: data_clean.weekly_row_selector
+     
   - node_name: fetch_bill_text
     inputs: sql_bill_text
     outputs: bill_text

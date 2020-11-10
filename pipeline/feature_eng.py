@@ -40,8 +40,8 @@ class topic_model(BaseOperator):
         train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
         df_train = bill_texts[train_mask]
         df_test = bill_texts[~train_mask]
-        train_docs = df_train[col_names["doc"]].tolist()
-        test_docs = df_test[col_names["doc"]].tolist()
+        train_docs = df_train[col_names["doc"]].values.astype('U')
+        test_docs = df_test[col_names["doc"]].values.astype('U')
 
         tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
         tfidf = tfidf_vectorizer.fit_transform(train_docs)

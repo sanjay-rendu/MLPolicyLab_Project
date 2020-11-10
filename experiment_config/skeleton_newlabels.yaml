@@ -9,17 +9,14 @@ outputs:
   metrics_lr_model3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
   metrics_base3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics.txt"
   metrics_commonsense3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics.txt"
+  saved_models1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_files.txt"
+  metrics_lr_model1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_grid_metrics.txt"
 
 graph:
   - node_name: fetch_labeled_data
     inputs: sql_loc_bill
     outputs: bill_data
     operation: data_io.fetch_sql
-
-  - node_name: weekly_snapshots
-    inputs: fetch_labeled_data.bill_data
-    outputs: weekly_bill_data
-    operation: data_clean.weekly_row_selector
 
   - node_name: fetch_bill_text
     inputs: sql_bill_text
@@ -53,6 +50,15 @@ graph:
       prediction_date: '2014-01-01'
       validation_end_date: '2015-07-01'
 
+## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
+  - node_name: split4
+    inputs: fetch_labeled_data.bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2016-01-01'
+      validation_end_date: '2017-07-01'
+
   - node_name: feature_eng3
     inputs: [split3.train, split3.val, fetch_bill_text.bill_text]
     outputs: [train, val]
@@ -81,6 +87,69 @@ graph:
     arguments:
       target: label
       max_iter: 200
+
+  - node_name: select_grid1
+    inputs: [split1.train, split1.val]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final', 'days_from_introduction',
+                          'number_dems', 'number_republicans', 'is_bipartisan', 'label']
+
+  - node_name: select_grid2
+    inputs: [split2.train, split2.val]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final', 'days_from_introduction',
+                          'number_dems', 'number_republicans', 'is_bipartisan', 'label']
+  
+  - node_name: select_grid3
+    inputs: [split3.train, split3.val]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final', 'days_from_introduction',
+                          'number_dems', 'number_republicans', 'is_bipartisan', 'label']
+
+  - node_name: model_grid
+    inputs: select_grid3.fil_train
+    outputs: model_list
+    operation: model.model_grid
+    arguments:
+      target: label
+      models: [
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression', 'params': {
+              'max_iter': 200
+            }
+          }
+      ]
+      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
+
+  - node_name: metric_grid1
+    inputs: [select_grid1.fil_val, model_grid.model_list]
+    outputs: [precisions, recalls]
+    operation: evaluate.topk_metric_grid
+    arguments:
+      target: label
+      threshold: 0.5
+  
+  - node_name: metric_grid2
+    inputs: [select_grid2.fil_val, model_grid.model_list]
+    outputs: [precisions, recalls]
+    operation: evaluate.topk_metric_grid
+    arguments:
+      target: label
+      threshold: 0.5
+  
+  - node_name: metric_grid3
+    inputs: [select_grid3.fil_val, model_grid.model_list]
+    outputs: [precisions, recalls]
+    operation: evaluate.topk_metric_grid
+    arguments:
+      target: label
+      threshold: 0.5
 
   - node_name: validate3
     inputs: [select3.fil_val, model_logistic_regression3.model]
@@ -116,12 +185,3 @@ graph:
       target: label
       threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
-
-## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
-  - node_name: split4
-    inputs: fetch_labeled_data.bill_data
-    outputs: [train, val]
-    operation: split.timeSplit
-    arguments:
-      prediction_date: '2016-01-01'
-      validation_end_date: '2017-07-01'

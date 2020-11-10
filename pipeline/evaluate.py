@@ -6,6 +6,7 @@ import pandas as pd
 import math
 from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
+from joblib import dump, load
 
 class evaluate(BaseOperator):
 
@@ -127,6 +128,40 @@ class predict_val(BaseOperator):
         self.outputs["prediction"].write(output)
 
 
+class predict_val_grid(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "data": Pandas_Dataframe(self.node.inputs[0]),
+            "model_files": File_Txt(self.node.inputs[1])
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "prediction": Pandas_Dataframe(self.node.outputs[0])
+        }
+
+    def run(self, target, threshold):
+        df = self.inputs["data"].read()
+        model_files = self.inputs["model_files"].read()
+
+        features = list(set(list(df.columns)) - {target})
+
+        X = df.as_matrix(columns=features)
+        y = df.as_matrix(columns=[target])
+
+        for m in model_files:
+            clf = load(m)
+            y_prob = clf.predict(X)
+            y_pred = np.array(y_prob > threshold, dtype=np.float)
+
+        output = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
+
+        self.outputs["prediction"].write(output)
+
+
 class topk_metric(BaseOperator):
 
     @property
@@ -207,3 +242,79 @@ class topk_metric(BaseOperator):
         self.outputs['topk_predictions'].write(df_preds)
 
 
+"""
+ideally wanted a function that takes in a list of multiple test datasets (across time)
+and returns precision and recall for each dataset and each model.
+issue: how to pass list of dataframes as input
+"""
+class topk_metric_grid(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "data": Pandas_Dataframe(self.node.inputs[0]),
+            "model_list": Pickle_Obj(self.node.inputs[1])
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "precisions": Pickle_Obj(self.node.outputs[0]),
+            "recalls": Pickle_Obj(self.node.outputs[1])
+        }
+
+    def topk(self, result, k=.3, colnames=None, metric='precision'):
+        """ Returns the metric of the top k% of bills
+        args:
+            result: pandas.dataframe, csv with predicted labels, score, and true labels. Bill passed should be labeled with 1.
+            k: float, decimal of top scores to check
+                default: .3
+            colnames: dict, used to specify column name for each feature of interest.
+                format: {'label': **colname**, 'score': **colname**}
+                default: {'label': 'label', 'score': 'score'}
+            metric: str, either 'precision', 'recall', or 'both'
+                default: 'precision'
+        returns:
+            precision or recall score. if both, then returns a tuple of (precision, recall)
+        """
+        if colnames is None:
+            colnames = {'label': 'label', 'score': 'score'}
+        result = result.sort_values(by=[colnames['score']], ascending=False)
+        df_len = len(result.index)
+        preds = [1] * math.floor(df_len * k)
+        preds += [0] * (df_len - math.floor(df_len * k))
+        labels = result[colnames['label']].tolist()
+
+        result['preds'] = preds
+
+        if metric == 'precision':
+            return precision_score(labels, preds), result
+        elif metric == 'recall':
+            return recall_score(labels, preds), result
+        else:
+            return (precision_score(labels, preds), recall_score(labels, preds)), result
+
+
+    def run(self, target, threshold):
+        df = self.inputs["data"].read()
+        model_list = self.inputs["model_list"].read()
+
+        features = list(set(list(df.columns)) - {target})
+
+        X = df.as_matrix(columns=features)
+        y = df.as_matrix(columns=[target])
+
+        precisions = []
+        recalls = []
+        for clf in model_list:
+            y_prob = clf.predict(X)
+            y_pred = np.array(y_prob > threshold, dtype=np.float)
+
+            result = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
+
+            temp, df_preds = self.topk(result, k=0.3, metric='both')
+            precisions.append(temp[0])
+            recalls.append(temp[1])
+
+        self.outputs['precisions'].write(precisions)
+        self.outputs['recalls'].write(recalls)

@@ -248,14 +248,17 @@ class topk_metric_grid(BaseOperator):
     @property
     def inputs(self):
         return {
-            "data": Pandas_Dataframe(self.node.inputs[0]),
-            "model_list": Pickle_Obj(self.node.inputs[1])
+            "data1": Pandas_Dataframe(self.node.inputs[0]),
+            "data2": Pandas_Dataframe(self.node.inputs[1]),
+            "data3": Pandas_Dataframe(self.node.inputs[2]),
+            "data4": Pandas_Dataframe(self.node.inputs[3]),
+            "model_list": Pickle_Obj(self.node.inputs[4])
         }
 
     @property
     def outputs(self):
         return {
-            "precisions": Pickle_Obj(self.node.outputs[0])
+            "result": Pandas_Dataframe(self.node.outputs[0])
         }
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):
@@ -290,27 +293,43 @@ class topk_metric_grid(BaseOperator):
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
 
-    def run(self, target, threshold):
-        df = self.inputs["data"].read()
+    def run(self, target, threshold, save_path):
         model_list = self.inputs["model_list"].read()
 
-        features = list(set(list(df.columns)) - {target})
+        #precisions = []
+        #for clf in model_list:
 
-        X = df.as_matrix(columns=features)
-        # y = df.as_matrix(columns=[target])
+        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+        result = pd.DataFrame()
 
-        precisions = []
-        for clf in model_list:
-            y_prob = clf.predict(X)
-            y_pred = np.array(y_prob > threshold, dtype=np.float)
+        for split in [1,2,3,4]:
+            df = self.inputs["data"+str(split)].read()
+            
+            features = list(set(list(df.columns)) - {target})
+            X = df.as_matrix(columns=features)
 
-            result = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
+            precisions = []
+            for i in range(len(model_list)):
+                save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
+                clf = load(save_file)
+        
+                y_prob = clf.predict(X)
+                y_pred = np.array(y_prob > threshold, dtype=np.float)
 
-            temp, df_preds = self.topk(result, k=0.3, metric='precision')
+                res = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
 
-            precisions.append(temp)
+                temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
-        self.outputs['precisions'].write(precisions)
+                precisions.append(temp)
+
+            result[idx_list[split-1]] = precisions
+        
+        result = result.T
+
+        result.plot(grid=True, legend=None)
+        plt.savefig('model_grid.png')
+
+        self.outputs['result'].write(result)
 
 
 

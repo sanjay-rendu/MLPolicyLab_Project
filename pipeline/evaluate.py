@@ -252,15 +252,17 @@ class topk_metric_grid(BaseOperator):
     @property
     def inputs(self):
         return {
-            "data": Pandas_Dataframe(self.node.inputs[0]),
-            "model_list": Pickle_Obj(self.node.inputs[1])
+            "data1": Pandas_Dataframe(self.node.inputs[0]),
+            "data2": Pandas_Dataframe(self.node.inputs[1]),
+            "data3": Pandas_Dataframe(self.node.inputs[2]),
+            "data4": Pandas_Dataframe(self.node.inputs[3]),
+            "model_list": Pickle_Obj(self.node.inputs[4])
         }
 
     @property
     def outputs(self):
         return {
-            "precisions": Pickle_Obj(self.node.outputs[0]),
-            "recalls": Pickle_Obj(self.node.outputs[1])
+            "precisions": Pickle_Obj(self.node.outputs[0])
         }
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):
@@ -296,25 +298,33 @@ class topk_metric_grid(BaseOperator):
 
 
     def run(self, target, threshold):
-        df = self.inputs["data"].read()
+        df1 = self.inputs["data1"].read()
+        df2 = self.inputs["data2"].read()
+        df3 = self.inputs["data3"].read()
+        df4 = self.inputs["data4"].read()
+
         model_list = self.inputs["model_list"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
-
         precisions = []
-        recalls = []
+        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+
+        
+
         for clf in model_list:
-            y_prob = clf.predict(X)
-            y_pred = np.array(y_prob > threshold, dtype=np.float)
+            for df in [df1, df2, df3, df4]:
 
-            result = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
+                features = list(set(list(df.columns)) - {target})
 
-            temp, df_preds = self.topk(result, k=0.3, metric='both')
-            precisions.append(temp[0])
-            recalls.append(temp[1])
+                X = df.as_matrix(columns=features)
+                # y = df.as_matrix(columns=[target])
+
+                y_prob = clf.predict(X)
+                y_pred = np.array(y_prob > threshold, dtype=np.float)
+
+                result = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
+
+                temp, df_preds = self.topk(result, k=0.3, metric='precision')
+
+                precisions.append(temp[0])
 
         self.outputs['precisions'].write(precisions)
-        self.outputs['recalls'].write(recalls)

@@ -76,41 +76,42 @@ class model_grid(BaseOperator):
     @property
     def inputs(self):
         return {
-            "train": Pandas_Dataframe(self.node.inputs[0])
+            "train1": Pandas_Dataframe(self.node.inputs[0]),
+            "train2": Pandas_Dataframe(self.node.inputs[1]),
+            "train3": Pandas_Dataframe(self.node.inputs[2]),
+            "train4": Pandas_Dataframe(self.node.inputs[3])
         }
 
     @property
     def outputs(self):
         return {
-            "model_list": Pickle_Obj(self.node.outputs[0])
+            "num_models": Pickle_Obj(self.node.outputs[0])
         }
 
-    def run(self, target, models, split, save_path):
-        df = self.inputs["train"].read()
-
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
-
-        i = 0
+    def run(self, target, models, save_path):
         save_files = []
-        model_list = []
-        for model in models:
 
-            mod_name, func_name = model['model_name'].rsplit('.',1)
-            mod = importlib.import_module(mod_name)
-            func = getattr(mod, func_name)
-            clf = func()
+        for split in [1,2,3,4]:
+            df = self.inputs["train"+str(split)].read()
+            
+            features = list(set(list(df.columns)) - {target})
 
-            #clf = model['model_name']()
-            clf.set_params(**model['params'])
-            clf.fit(X, y)
+            X = df.as_matrix(columns=features)
+            y = df.as_matrix(columns=[target])
 
-            save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
-            save_files.append(save_files)
-            dump(clf, save_file)
-            model_list.append(clf)
-            i += 1
+            for (i, model) in enumerate(models):
 
-        self.outputs["model_list"].write(model_list)
+                mod_name, func_name = model['model_name'].rsplit('.',1)
+                mod = importlib.import_module(mod_name)
+                func = getattr(mod, func_name)
+                clf = func()
+
+                #clf = model['model_name']()
+                clf.set_params(**model['params'])
+                clf.fit(X, y)
+
+                save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
+                save_files.append(save_files)
+                dump(clf, save_file)
+
+        self.outputs["num_models"].write(len(save_files))

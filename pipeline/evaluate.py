@@ -252,7 +252,7 @@ class topk_metric_grid(BaseOperator):
             "data2": Pandas_Dataframe(self.node.inputs[1]),
             "data3": Pandas_Dataframe(self.node.inputs[2]),
             "data4": Pandas_Dataframe(self.node.inputs[3]),
-            "model_list": Pickle_Obj(self.node.inputs[4])
+            "num_models": Pickle_Obj(self.node.inputs[4])
         }
 
     @property
@@ -260,6 +260,28 @@ class topk_metric_grid(BaseOperator):
         return {
             "result": Pandas_Dataframe(self.node.outputs[0])
         }
+
+    def baserate(self, test):
+        ''' Predicts that every bill will pass. Defines the baserate of bill passage.
+        returns:
+            preds: list of predictions
+            score: list of scores
+        '''
+        preds = [1] * len(test.index)
+        score = [1] * len(test.index)
+        return preds, score
+
+    def common_sense(self, train, colnames={'dem': 'number_dems', 'repub': 'number_republicans'}):
+        ''' Score is # dem sponsors - # repub sponsors
+        args:
+            test: pandas.dataframe
+            colnames: column names for # dem and #republican sponsors
+                format: {'dem': **col_name**, 'repub': **col_name**}
+                default: {'dem': 'num_dem_sponsors', 'repub': 'num_repub_sponsors'}
+        '''
+        score = (train[colnames['dem']] - train[colnames['repub']]).tolist()
+        preds = [x > 0 for x in score]
+        return preds, score
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):
         """ Returns the metric of the top k% of bills
@@ -294,7 +316,7 @@ class topk_metric_grid(BaseOperator):
 
 
     def run(self, target, threshold, save_path):
-        model_list = self.inputs["model_list"].read()
+        num_models = self.inputs["num_models"].read()
 
         #precisions = []
         #for clf in model_list:
@@ -309,7 +331,7 @@ class topk_metric_grid(BaseOperator):
             X = df.as_matrix(columns=features)
 
             precisions = []
-            for i in range(len(model_list)):
+            for i in range(num_models):
                 save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
                 clf = load(save_file)
         
@@ -323,6 +345,13 @@ class topk_metric_grid(BaseOperator):
                 precisions.append(temp)
 
             result[idx_list[split-1]] = precisions
+
+            preds, score = self.baserate(df)
+            preds1, score1 = self.common_sense(df)
+
+            baserate = pd.DataFrame(list(zip(list(df.label.values),preds, score)), columns=['label', 'pred', 'score'])
+            common_sense = pd.DataFrame(list(zip(list(df.label.values),preds1, score1)), columns=['label', 'pred', 'score'])
+
         
         result = result.T
 
@@ -331,44 +360,3 @@ class topk_metric_grid(BaseOperator):
 
         self.outputs['result'].write(result)
 
-
-
-class plot_grid(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "precision1": Pickle_Obj(self.node.inputs[0]),
-            "precision2": Pickle_Obj(self.node.inputs[0]),
-            "precision3": Pickle_Obj(self.node.inputs[0]),
-            "precision4": Pickle_Obj(self.node.inputs[0]),
-            "model_list": Pickle_Obj(self.node.inputs[1])
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "result": Pandas_Dataframe(self.node.outputs[0])
-        }
-
-    def run(self):
-        precision1 = self.inputs["precision1"].read()
-        precision2 = self.inputs["precision2"].read()
-        precision3 = self.inputs["precision3"].read()
-        precision4 = self.inputs["precision4"].read()
-        model_list = self.inputs["model_list"].read()
-
-        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
-
-        #result = pd.DataFrame(np.arange(len(model_list)), columns=['model'])
-        result = pd.DataFrame()
-        result[idx_list[0]] = precision1
-        result[idx_list[1]] = precision2
-        result[idx_list[2]] = precision3
-        result[idx_list[3]] = precision4
-        result = result.T
-
-        result.plot(grid=True, legend=None)
-        plt.savefig('model_grid.png')
-
-        self.outputs['result'].write(result)

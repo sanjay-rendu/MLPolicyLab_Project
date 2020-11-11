@@ -133,9 +133,9 @@ graph:
       selected_features: ['days_to_final', 'days_from_introduction',
                           'number_dems', 'number_republicans', 'is_bipartisan', 'label']
 
-  - node_name: model_grid1
-    inputs: select_grid2.fil_train
-    outputs: model_list
+  - node_name: model_grid
+    inputs: [select_grid2.fil_train, select_grid2.fil_train, select_grid3.fil_train, select_grid4.fil_train]
+    outputs: num_models
     operation: model.model_grid
     arguments:
       target: label
@@ -189,327 +189,52 @@ graph:
             }
           },
           {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 0.5
+              'n_estimators': 50, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
             }
           },
           {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 1.0
+              'n_estimators': 100, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
             }
           },
           {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 2.0
+              'n_estimators': 200, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
             }
           },
           {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 10.0
+              'n_estimators': 500, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+            }
+          },
+          {
+            'model_name': 'sklearn.ensemble.RandomForestClassifier',
+            'params': {
+              'n_estimators': 1000, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+            }
+          },
+          {
+            'model_name': 'sklearn.ensemble.RandomForestClassifier',
+            'params': {
+              'n_estimators': 2000, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
             }
           },
       ]
-      split: 1
       save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-
-  - node_name: model_grid2
-    inputs: select_grid2.fil_train
-    outputs: model_list
-    operation: model.model_grid
-    arguments:
-      target: label
-      models: [
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 10.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 10.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 10.0
-            }
-          },
-      ]
-      split: 2
-      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-  
-  - node_name: model_grid3
-    inputs: select_grid3.fil_train
-    outputs: model_list
-    operation: model.model_grid
-    arguments:
-      target: label
-      models: [
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 10.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 10.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 10.0
-            }
-          },
-      ]
-      split: 3
-      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-  
-  - node_name: model_grid4
-    inputs: select_grid4.fil_train
-    outputs: model_list
-    operation: model.model_grid
-    arguments:
-      target: label
-      models: [
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 10.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 10.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 0.5
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 1.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 2.0
-            }
-          },
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression',
-            'params': {
-              'max_iter': 200, 'penalty': 'elasticnet', 'C': 10.0
-            }
-          },
-      ]
-      split: 4
-      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-  
-  # - node_name: metric_grid1
-  #   inputs: [select_grid1.fil_val, model_grid1.model_list]
-  #   outputs: precisions
-  #   operation: evaluate.topk_metric_grid
-  #   arguments:
-  #     target: label
-  #     threshold: 0.5
-  
-  # - node_name: metric_grid2
-  #   inputs: [select_grid2.fil_val, model_grid2.model_list]
-  #   outputs: precisions
-  #   operation: evaluate.topk_metric_grid
-  #   arguments:
-  #     target: label
-  #     threshold: 0.5
-  
-  # - node_name: metric_grid3
-  #   inputs: [select_grid3.fil_val, model_grid3.model_list]
-  #   outputs: precisions
-  #   operation: evaluate.topk_metric_grid
-  #   arguments:
-  #     target: label
-  #     threshold: 0.5
-
-  # - node_name: metric_grid4
-  #   inputs: [select_grid4.fil_val, model_grid4.model_list]
-  #   outputs: precisions
-  #   operation: evaluate.topk_metric_grid
-  #   arguments:
-  #     target: label
-  #     threshold: 0.5
 
   - node_name: metric_grid
-    inputs: [select_grid1.fil_val, select_grid2.fil_val, select_grid3.fil_val, select_grid4.fil_val, model_grid4.model_list]
+    inputs: [select_grid1.fil_val, select_grid2.fil_val, select_grid3.fil_val, select_grid4.fil_val, model_grid.num_models]
     outputs: result_grid
     operation: evaluate.topk_metric_grid
     arguments:
         target: label
         threshold: 0.5
         save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-
-  # - node_name: plot_grid
-  #   inputs: [metric_grid1.precisions, metric_grid2.precisions, metric_grid3.precisions, metric_grid4.precisions, model_grid4.model_list]
-  #   outputs: result_grid
-  #   operation: evaluate.plot_grid
 
   - node_name: validate3
     inputs: [select3.fil_val, model_logistic_regression3.model]

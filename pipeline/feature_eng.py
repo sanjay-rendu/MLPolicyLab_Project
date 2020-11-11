@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
 #from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from daggit.core.io.io import Pandas_Dataframe
+from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj
 from daggit.core.base.factory import BaseOperator
 
 
@@ -37,13 +37,14 @@ class get_lda_model(BaseOperator):
         del train
         
         train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
-        df_train = bill_texts[train_mask]
-        del bill_texts
+        #train_docs = bill_texts[train_mask]["doc"].values.astype('U')
+        #del bill_texts
         
         
         tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
-        tf = tf_vectorizer.fit_transform(train_docs)
-        del train_docs
+        tf = tf_vectorizer.fit_transform(bill_texts[train_mask]["doc"])
+        del bill_texts
+        #del train_docs
 
         lda = LDA(n_components=num_topics, max_iter=5, learning_method="online", learning_offset=50., random_state=0).fit(tf)
 
@@ -85,11 +86,10 @@ class topic_model(BaseOperator):
         text_mask = bill_texts["bill_id"].isin(df["bill_id"].unique())
         bill_texts = bill_texts[text_mask]
         bill_df = bill_texts.drop("doc", axis = 1)
-        doc_list = bill_texts["doc"].values.astype('U')
-        del bill_texts
 
-        tf = vec.transform(doc_list)
+        tf = vec.transform(bill_texts["doc"])
         lda_vals = lda.transform(tf)
+        del bill_texts
         del tf
 
         lda_cols = ["topic_{t}".format(t=t) for t in range(0, lda_vals.shape[1])]

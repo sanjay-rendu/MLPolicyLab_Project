@@ -85,9 +85,7 @@ class model_grid(BaseOperator):
             "model_list": Pickle_Obj(self.node.outputs[0])
         }
 
-    def run(self, target, models, save_path):
-        """ Set random forest parameters using params input as dictionary
-        """
+    def run(self, target, models, split, save_path):
         df = self.inputs["train"].read()
 
         features = list(set(list(df.columns)) - {target})
@@ -109,7 +107,7 @@ class model_grid(BaseOperator):
             clf.set_params(**model['params'])
             clf.fit(X, y)
 
-            save_file = save_path + 'model_{:d}.joblib'.format(i)
+            save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
             save_files.append(save_files)
             dump(clf, save_file)
             model_list.append(clf)

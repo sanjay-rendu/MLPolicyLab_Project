@@ -242,21 +242,14 @@ class topk_metric(BaseOperator):
         self.outputs['topk_predictions'].write(df_preds)
 
 
-"""
-ideally wanted a function that takes in a list of multiple test datasets (across time)
-and returns precision and recall for each dataset and each model.
-issue: how to pass list of dataframes as input
-"""
+
 class topk_metric_grid(BaseOperator):
 
     @property
     def inputs(self):
         return {
-            "data1": Pandas_Dataframe(self.node.inputs[0]),
-            "data2": Pandas_Dataframe(self.node.inputs[1]),
-            "data3": Pandas_Dataframe(self.node.inputs[2]),
-            "data4": Pandas_Dataframe(self.node.inputs[3]),
-            "model_list": Pickle_Obj(self.node.inputs[4])
+            "data": Pandas_Dataframe(self.node.inputs[0]),
+            "model_list": Pickle_Obj(self.node.inputs[1])
         }
 
     @property
@@ -298,33 +291,65 @@ class topk_metric_grid(BaseOperator):
 
 
     def run(self, target, threshold):
-        df1 = self.inputs["data1"].read()
-        df2 = self.inputs["data2"].read()
-        df3 = self.inputs["data3"].read()
-        df4 = self.inputs["data4"].read()
-
+        df = self.inputs["data"].read()
         model_list = self.inputs["model_list"].read()
 
+        features = list(set(list(df.columns)) - {target})
+
+        X = df.as_matrix(columns=features)
+        # y = df.as_matrix(columns=[target])
+
         precisions = []
-        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
-
-        
-
         for clf in model_list:
-            for df in [df1, df2, df3, df4]:
+            y_prob = clf.predict(X)
+            y_pred = np.array(y_prob > threshold, dtype=np.float)
 
-                features = list(set(list(df.columns)) - {target})
+            result = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
 
-                X = df.as_matrix(columns=features)
-                # y = df.as_matrix(columns=[target])
+            temp, df_preds = self.topk(result, k=0.3, metric='precision')
 
-                y_prob = clf.predict(X)
-                y_pred = np.array(y_prob > threshold, dtype=np.float)
-
-                result = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
-
-                temp, df_preds = self.topk(result, k=0.3, metric='precision')
-
-                precisions.append(temp[0])
+            precisions.append(temp)
 
         self.outputs['precisions'].write(precisions)
+
+
+
+class plot_grid(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "precision1": Pickle_Obj(self.node.inputs[0]),
+            "precision2": Pickle_Obj(self.node.inputs[0]),
+            "precision3": Pickle_Obj(self.node.inputs[0]),
+            "precision4": Pickle_Obj(self.node.inputs[0]),
+            "model_list": Pickle_Obj(self.node.inputs[1])
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "result": Pandas_Dataframe(self.node.outputs[0])
+        }
+
+    def run(self):
+        precision1 = self.inputs["precision1"].read()
+        precision2 = self.inputs["precision2"].read()
+        precision3 = self.inputs["precision3"].read()
+        precision4 = self.inputs["precision4"].read()
+        model_list = self.inputs["model_list"].read()
+
+        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+
+        #result = pd.DataFrame(np.arange(len(model_list)), columns=['model'])
+        result = pd.DataFrame()
+        result[idx_list[0]] = precision1
+        result[idx_list[1]] = precision2
+        result[idx_list[2]] = precision3
+        result[idx_list[3]] = precision4
+        result = result.T
+
+        result.plot(grid=True, legend=None)
+        plt.savefig('model_grid.png')
+
+        self.outputs['result'].write(result)

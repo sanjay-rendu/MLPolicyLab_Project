@@ -1,11 +1,12 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
+#from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
 
 
-class lda_model(BaseOperator):
+class topic_model(BaseOperator):
 
     @property
     def inputs(self):
@@ -83,3 +84,34 @@ class lda_model(BaseOperator):
 
         self.outputs["train"].write(train)
         self.outputs["val"].write(val)
+
+class doc2vec(BaseOperator):
+    
+    @property
+    def inputs(self):
+        return {"train": Pandas_Dataframe(self.node.inputs[0]),
+                "val": Pandas_Dataframe(self.node.inputs[1]),
+                "bill_texts": Pandas_Dataframe(self.node.inputs[2])}
+
+    @property
+    def outputs(self):
+        return {"train": Pandas_Dataframe(self.node.outputs[0]),
+                "val": Pandas_Dataframe(self.node.outputs[1])}
+
+    def run(self, col_names = {"bill_id": "bill_id", "doc": "doc"}, num_features = 1000, num_topics = 10):
+ 
+        train = self.inputs["train"].read()
+        val = self.inputs["val"].read()
+        bill_texts = self.inputs["bill_texts"].read()
+        train_ids = train[col_names["bill_id"]].unique()
+        
+        train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
+        df_train = bill_texts[train_mask]
+        df_test = bill_texts[~train_mask]
+        train_docs = df_train[col_names["doc"]].values.astype('U')
+        test_docs = df_test[col_names["doc"]].values.astype('U')
+        
+        documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(train_docs)]
+        model = Doc2Vec(documents, vector_size=20, window=2, min_count=1, workers=4)
+
+        

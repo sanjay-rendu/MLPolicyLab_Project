@@ -4,6 +4,32 @@ owner: bills3_group
 inputs:
   sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/latestLabels.sql"
   sql_bill_text: "/data/groups/bills3/mlpp_project_home/experiment_config/bill_texts.sql"
+  model_specification: [
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l1', 'C': 0.5
+            }
+          },
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l1', 'C': 1.0
+            }
+          },
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l1', 'C': 2.0
+            }
+          },
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l1', 'C': 10.0
+            }
+          }
+      ]
 
 outputs:
   metrics_lr_model3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
@@ -117,44 +143,90 @@ graph:
       selected_features: ['days_to_final', 'days_from_introduction',
                           'number_dems', 'number_republicans', 'is_bipartisan', 'label']
 
-  - node_name: model_grid
+  - node_name: select_grid4
+    inputs: [split4.train, split4.val]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final', 'days_from_introduction',
+                          'number_dems', 'number_republicans', 'is_bipartisan', 'label']
+
+  - node_name: model_grid1
+    inputs: select_grid2.fil_train
+    outputs: model_list
+    operation: model.model_grid
+    arguments:
+      target: label
+      models: model_specification
+      split: 1
+      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
+
+  - node_name: model_grid2
+    inputs: select_grid2.fil_train
+    outputs: model_list
+    operation: model.model_grid
+    arguments:
+      target: label
+      models: model_specification
+      split: 2
+      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
+  
+  - node_name: model_grid3
     inputs: select_grid3.fil_train
     outputs: model_list
     operation: model.model_grid
     arguments:
       target: label
-      models: [
-          {
-            'model_name': 'sklearn.linear_model.LogisticRegression', 'params': {
-              'max_iter': 200
-            }
-          }
-      ]
+      models: model_specification
+      split: 3
       save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-
+  
+  - node_name: model_grid4
+    inputs: select_grid4.fil_train
+    outputs: model_list
+    operation: model.model_grid
+    arguments:
+      target: label
+      models: model_specification
+      split: 4
+      save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
+  
   - node_name: metric_grid1
-    inputs: [select_grid1.fil_val, model_grid.model_list]
-    outputs: [precisions, recalls]
+    inputs: [select_grid1.fil_val, model_grid1.model_list]
+    outputs: precisions
     operation: evaluate.topk_metric_grid
     arguments:
       target: label
       threshold: 0.5
   
   - node_name: metric_grid2
-    inputs: [select_grid2.fil_val, model_grid.model_list]
-    outputs: [precisions, recalls]
+    inputs: [select_grid2.fil_val, model_grid2.model_list]
+    outputs: precisions
     operation: evaluate.topk_metric_grid
     arguments:
       target: label
       threshold: 0.5
   
   - node_name: metric_grid3
-    inputs: [select_grid3.fil_val, model_grid.model_list]
-    outputs: [precisions, recalls]
+    inputs: [select_grid3.fil_val, model_grid3.model_list]
+    outputs: precisions
     operation: evaluate.topk_metric_grid
     arguments:
       target: label
       threshold: 0.5
+
+  - node_name: metric_grid4
+    inputs: [select_grid4.fil_val, model_grid4.model_list]
+    outputs: precisions
+    operation: evaluate.topk_metric_grid
+    arguments:
+      target: label
+      threshold: 0.5
+
+  - node_name: plot_grid
+    inputs: [metric_grid1.precisions, metric_grid2.precisions, metric_grid3.precisions, metric_grid4.precisions, model_grid4.model_list]
+    outputs: result_grid
+    operation: evaluate.plot_grid
 
   - node_name: validate3
     inputs: [select3.fil_val, model_logistic_regression3.model]

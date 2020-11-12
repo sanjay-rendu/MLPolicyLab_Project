@@ -89,15 +89,15 @@ class model_grid(BaseOperator):
         }
 
     def run(self, target, models, save_path):
-        save_files = []
 
-        for split in [1,2,3,4]:
+        for split in [3,4]:
             df = self.inputs["train"+str(split)].read()
             
             features = list(set(list(df.columns)) - {target})
 
             X = df.as_matrix(columns=features)
             y = df.as_matrix(columns=[target])
+            df = ''
 
             for (i, model) in enumerate(models):
 
@@ -111,7 +111,7 @@ class model_grid(BaseOperator):
                 clf.fit(X, y)
 
                 save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
-                save_files.append(save_files)
                 dump(clf, save_file)
 
-        self.outputs["num_models"].write(len(save_files))
+            
+        self.outputs["num_models"].write(len(models))

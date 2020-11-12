@@ -98,57 +98,6 @@ class topic_model(BaseOperator):
 
         df.merge(bill_df, on="bill_id", how = "left")
         self.outputs["df_out"].write(df)
-       # train = self.inputs["df"].read()
-       # val = self.inputs["val"].read()
-       # bill_texts = self.inputs["bill_texts"].read()
-       # train_ids = train[col_names["bill_id"]].unique()
-       # 
-       # train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
-       # df_train = bill_texts[train_mask]
-       # df_test = bill_texts[~train_mask]
-       # train_docs = df_train[col_names["doc"]].values.astype('U')
-       # test_docs = df_test[col_names["doc"]].values.astype('U')
-
-       # #tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
-       # #tfidf = tfidf_vectorizer.fit_transform(train_docs)
-       # #tfidf_feature_names = tfidf_vectorizer.get_feature_names()
-
-       # # LDA can only use raw term counts for LDA because it is a probabilistic graphical model
-       # tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
-       # tf = tf_vectorizer.fit_transform(train_docs)
-       # #tf_feature_names = tf_vectorizer.get_feature_names()
-       # del train_docs
-
-       # #nmf = NMF(n_components=num_topics, random_state = 1, alpha=.1, l1_ratio=.5, init="nndsvd").fit(tfidf)
-       # lda = LDA(n_components=num_topics, max_iter=5, learning_method="online", learning_offset=50., random_state=0).fit(tf)
-
-       # #nmf_vals = nmf.transform(tfidf)
-       # lda_vals=lda.transform(tf)
-       # del tf
-
-       # #nmf_cols = ["nmf_{t}".format(t=t) for t in range(0,nmf_vals.shape[1])]
-       # lda_cols = ["topic_{t}".format(t=t) for t in range(0,lda_vals.shape[1])]
-       # df_train = df_train[["bill_id"]]
-       # df_train = df_train.reindex(columns=df_train.columns.tolist() + lda_cols) # add empty columns first
-       # #df_train[nmf_cols] = nmf_vals
-       # df_train[lda_cols] = lda_vals
-       # #train = train.join(df_train.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
-       # train = train.merge(df_train, on='bill_id', how='left')
-       # del df_train
-
-       # tf = tf_vectorizer.transform(test_docs)
-       # #tfidf = tfidf_vectorizer.transform(test_docs)
-       # df_test = df_test[["bill_id"]]
-       # df_test = df_test.reindex(columns=df_test.columns.tolist() + lda_cols) # add empty columns first
-       # #df_test[nmf_cols] = nmf.transform(tfidf)
-       # df_test[lda_cols] = lda.transform(tf)
-       # del tf
-       # #val = val.join(df_test.drop([col_names["doc"]], axis=1).set_index(col_names["bill_id"]), on=col_names["bill_id"])
-       # val = val.merge(df_test, on='bill_id', how='left')
-       # del df_test
-
-       # self.outputs["train"].write(train)
-       # self.outputs["val"].write(val)
 
 class doc2vec(BaseOperator):
     
@@ -178,5 +127,4 @@ class doc2vec(BaseOperator):
         
         documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(train_docs)]
         model = Doc2Vec(documents, vector_size=20, window=2, min_count=1, workers=4)
-
         

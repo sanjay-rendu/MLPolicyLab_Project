@@ -33,7 +33,7 @@ class evaluate(BaseOperator):
         X = df.as_matrix(columns=features)
         y = df.as_matrix(columns=[target])
 
-        y_prob = model.predict(X)
+        y_prob = model.predict_proba(X)
         y_pred = np.array(y_prob > threshold, dtype=np.float)
 
         acc = accuracy_score(y, y_pred)
@@ -95,6 +95,25 @@ class baseline(BaseOperator):
         self.outputs["baserate"].write(baserate)
         self.outputs["commonsense"].write(common_sense)
 
+class load_model(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "train": Pandas_Dataframe(self.node.inputs[1])
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "model": Pickle_Obj(self.node.outputs[0])
+        }
+
+    def run(self, model_path):
+        m = load(model_path)
+
+        self.outputs["model"].write(m)
+
 
 class predict_val(BaseOperator):
 
@@ -120,42 +139,8 @@ class predict_val(BaseOperator):
         X = df.as_matrix(columns=features)
         y = df.as_matrix(columns=[target])
 
-        y_prob = model.predict(X)
+        y_prob = model.predict_proba(X)
         y_pred = np.array(y_prob > threshold, dtype=np.float)
-
-        output = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
-
-        self.outputs["prediction"].write(output)
-
-
-class predict_val_grid(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "data": Pandas_Dataframe(self.node.inputs[0]),
-            "model_files": File_Txt(self.node.inputs[1])
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "prediction": Pandas_Dataframe(self.node.outputs[0])
-        }
-
-    def run(self, target, threshold):
-        df = self.inputs["data"].read()
-        model_files = self.inputs["model_files"].read()
-
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
-
-        for m in model_files:
-            clf = load(m)
-            y_prob = clf.predict(X)
-            y_pred = np.array(y_prob > threshold, dtype=np.float)
 
         output = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
 
@@ -318,24 +303,26 @@ class topk_metric_grid(BaseOperator):
     def run(self, target, threshold, save_path):
         num_models = self.inputs["num_models"].read()
 
-        #precisions = []
-        #for clf in model_list:
-
-        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+        #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+        idx_list = ['2011', '2013', '2015', '2017']
         result = pd.DataFrame()
 
         for split in [1,2,3,4]:
             df = self.inputs["data"+str(split)].read()
             
             features = list(set(list(df.columns)) - {target})
-            X = df.as_matrix(columns=features)
-
             precisions = []
-            for i in range(num_models):
+
+            X = df.as_matrix(columns=features)
+            if split == 1 or split == 2:
+                model_list = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,17,18,19]
+            else:
+                model_list = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+            for i in model_list:
                 save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
                 clf = load(save_file)
         
-                y_prob = clf.predict(X)
+                y_prob = clf.predict_proba(X)
                 y_pred = np.array(y_prob > threshold, dtype=np.float)
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
@@ -343,19 +330,33 @@ class topk_metric_grid(BaseOperator):
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                 precisions.append(temp)
-
-            result[idx_list[split-1]] = precisions
-
+        
             preds, score = self.baserate(df)
             preds1, score1 = self.common_sense(df)
 
             baserate = pd.DataFrame(list(zip(list(df.label.values),preds, score)), columns=['label', 'pred', 'score'])
             common_sense = pd.DataFrame(list(zip(list(df.label.values),preds1, score1)), columns=['label', 'pred', 'score'])
 
-        
+            temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
+            precisions.append(temp)
+            temp, df_preds = self.topk(common_sense, k=0.3, metric='precision')
+            precisions.append(temp)
+
+            result[idx_list[split-1]] = precisions
+
         result = result.T
 
-        result.plot(grid=True, legend=None)
+        styles = ['b-']*12
+        styles += ['r-']*6
+        #styles += ['m-']*10
+        styles += ['k--'] + ['k:']
+        fig, ax = plt.subplots(figsize=(12,6))
+        for col, style in zip(result.columns, styles):
+            result[col].plot(style=style, ax=ax)
+        ax.grid(True)
+        ax.set_xlabel('Evaluation start year')
+        ax.set_ylabel('Precision@30 percent')
+
         plt.savefig('model_grid.png')
 
         self.outputs['result'].write(result)

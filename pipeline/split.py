@@ -56,7 +56,7 @@ class timeSplit(BaseOperator):
         :return: [train, val] data
         """
         all_data = self.inputs["all_data"].read()
-        all_data.present_date = pd.to_datetime(all_data.present_date)
+        all_data.present_date = pd.to_datetime(all_data.present_date, errors='coerce')
 
         present_date = datetime.strptime(prediction_date, "%Y-%m-%d")
         label_date = present_date + timedelta(days=label_window)

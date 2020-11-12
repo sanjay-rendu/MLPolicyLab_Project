@@ -129,12 +129,24 @@ graph:
                           'number_dems', 'number_republicans', 'is_bipartisan', 'label']
 
   - node_name: model_grid
-    inputs: [select_grid2.fil_train, select_grid2.fil_train, select_grid3.fil_train, select_grid4.fil_train]
+    inputs: [select_grid1.fil_train, select_grid2.fil_train, select_grid3.fil_train, select_grid4.fil_train]
     outputs: num_models
     operation: model.model_grid
     arguments:
       target: label
       models: [
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l1', 'C': 0.1
+            }
+          },
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l1', 'C': 0.2
+            }
+          },
           {
             'model_name': 'sklearn.linear_model.LogisticRegression',
             'params': {
@@ -156,7 +168,19 @@ graph:
           {
             'model_name': 'sklearn.linear_model.LogisticRegression',
             'params': {
-              'max_iter': 200, 'penalty': 'l1', 'C': 10.0
+              'max_iter': 200, 'penalty': 'l1', 'C': 5.0
+            }
+          },
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l2', 'C': 0.1
+            }
+          },
+          {
+            'model_name': 'sklearn.linear_model.LogisticRegression',
+            'params': {
+              'max_iter': 200, 'penalty': 'l2', 'C': 0.2
             }
           },
           {
@@ -180,7 +204,7 @@ graph:
           {
             'model_name': 'sklearn.linear_model.LogisticRegression',
             'params': {
-              'max_iter': 200, 'penalty': 'l2', 'C': 10.0
+              'max_iter': 200, 'penalty': 'l2', 'C': 5.0
             }
           },
           {
@@ -201,24 +225,108 @@ graph:
               'n_estimators': 200, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
             }
           },
+          # {
+          #   'model_name': 'sklearn.ensemble.RandomForestClassifier',
+          #   'params': {
+          #     'n_estimators': 500, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.ensemble.RandomForestClassifier',
+          #   'params': {
+          #     'n_estimators': 1000, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+          #   }
+          # },
           {
             'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'n_estimators': 500, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+              'n_estimators': 50, 'criterion': 'gini', 'min_samples_split': 0.2, 'max_features': 'auto'
             }
           },
           {
             'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'n_estimators': 1000, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+              'n_estimators': 100, 'criterion': 'gini', 'min_samples_split': 0.2, 'max_features': 'auto'
             }
           },
           {
             'model_name': 'sklearn.ensemble.RandomForestClassifier',
             'params': {
-              'n_estimators': 2000, 'criterion': 'gini', 'min_samples_split': 0.1, 'max_features': 'auto'
+              'n_estimators': 200, 'criterion': 'gini', 'min_samples_split': 0.2, 'max_features': 'auto'
             }
           },
+          # {
+          #   'model_name': 'sklearn.ensemble.RandomForestClassifier',
+          #   'params': {
+          #     'n_estimators': 500, 'criterion': 'gini', 'min_samples_split': 0.2, 'max_features': 'auto'
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.ensemble.RandomForestClassifier',
+          #   'params': {
+          #     'n_estimators': 1000, 'criterion': 'gini', 'min_samples_split': 0.2, 'max_features': 'auto'
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'rbf', 'C': 0.1
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'rbf', 'C': 1.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'rbf', 'C': 2.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'rbf', 'C': 5.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'rbf', 'C': 10.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'poly', 'C': 0.1
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'poly', 'C': 1.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'poly', 'C': 2.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'poly', 'C': 5.0
+          #   }
+          # },
+          # {
+          #   'model_name': 'sklearn.svm.SVC',
+          #   'params': {
+          #     'kernel': 'poly', 'C': 10.0
+          #   }
+          # },
       ]
       save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
 
@@ -265,3 +373,75 @@ graph:
       target: label
       threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
+
+  - node_name: load_model_1
+    inputs: select_grid4.fil_train
+    outputs: model
+    operation: evaluate.load_model
+    arguments:
+      model_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_split_4_10.joblib
+
+  - node_name: load_model_2
+    inputs: select_grid4.fil_train
+    outputs: model
+    operation: evaluate.load_model
+    arguments:
+      model_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_split_4_17.joblib
+
+  - node_name: validate_model_1
+    inputs: [select_grid4.fil_val, load_model_1.model]
+    outputs: val_output
+    operation: evaluate.predict_val
+    arguments:
+      target: label
+      threshold: 0.5
+
+  - node_name: validate_model_2
+    inputs: [select_grid4.fil_val, load_model_2.model]
+    outputs: val_output
+    operation: evaluate.predict_val
+    arguments:
+      target: label
+      threshold: 0.5
+
+  - node_name: topk_model_1
+    inputs: validate_model_1.val_output
+    outputs: [metrics_lr_model_1, model_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      threshold: 0.5
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model_1.png
+
+  - node_name: topk_model_2
+    inputs: validate_model_2.val_output
+    outputs: [metrics_lr_model_2, model_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      threshold: 0.5
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model_2.png
+
+  - node_name: baseline4
+    inputs: split4.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: topk_baserate4
+    inputs: baseline4.baserate
+    outputs: [metrics_base4, base_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      threshold: 0.5
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base4.png
+
+  - node_name: topk_commonsense4
+    inputs: baseline4.commonsense
+    outputs: [metrics_commonsense4, commonsense_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      threshold: 0.5
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense4.png
+

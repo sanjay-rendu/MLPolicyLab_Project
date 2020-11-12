@@ -79,7 +79,7 @@ class feature_selector(BaseOperator):
         self.outputs["filtered_train"].write(train)
         self.outputs["filtered_test"].write(test)
 
-class weekly_row_selector(BaseOperator):
+class monthly_row_selector(BaseOperator):
 
     @property
     def inputs(self):

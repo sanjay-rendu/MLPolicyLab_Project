@@ -22,10 +22,16 @@ graph:
     inputs: sql_bill_text
     outputs: bill_text
     operation: data_io.fetch_sql
+    
+  - node_name: monthly_snapshots
+    inputs: fetch_labeled_data.bill_data
+    outputs: monthly_bill_data
+    operation: data_clean.monthly_row_selector
+     
 
 ## set 1: train [2009-01-01, 2010-01-01); test [2010-01-01 + 180 days, 2011-07-01) ##
   - node_name: split1
-    inputs: fetch_labeled_data.bill_data
+    inputs: monthly_snapshots.monthly_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -34,7 +40,7 @@ graph:
 
 ## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
   - node_name: split2
-    inputs: fetch_labeled_data.bill_data
+    inputs: monthly_snapshots.monthly_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -43,7 +49,7 @@ graph:
 
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
   - node_name: split3
-    inputs: fetch_labeled_data.bill_data
+    inputs: monthly_snapshots.monthly_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -52,7 +58,7 @@ graph:
 
 ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
   - node_name: split4
-    inputs: fetch_labeled_data.bill_data
+    inputs: monthly_snapshots.monthly_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:

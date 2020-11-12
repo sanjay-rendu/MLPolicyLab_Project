@@ -99,13 +99,13 @@ class weekly_row_selector(BaseOperator):
 
         # prepare df for filtering on every 7th day plus the final day for the bill or session
         conditions = [(dfnew['present_date'] == dfnew['final_date'])]
-        choices = [8]
+        choices = [30]
 
         dfnew['day_from_week_start'] = np.select(conditions, choices,
-                                                 default=(dfnew['present_date'] - dfnew['original_date']).dt.days % 7)
+                                                 default=(dfnew['present_date'] - dfnew['original_date']).dt.days % 30)
 
         # filter
-        d = [0, 8]
+        d = [0, 30]
         final_df = dfnew.loc[dfnew['day_from_week_start'].isin(d)]
 
         self.outputs["filtered_data"].write(final_df)

@@ -13,8 +13,6 @@ import csv
 import numpy as np
 import pandas as pd
 import datetime
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
 from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj
 from daggit.core.base.factory import BaseOperator
 
@@ -28,20 +26,7 @@ class weekly_convert(BaseOperator):
         return {"df": Pandas_Dataframe(self.node.outputs[0])}
     def run(self):
         """
-        Engineers features out of raw data. Saves and returns final dataframe.
-            Arguments:
-                index: str
-                    Index features (bill_id)
-                date: str
-                    String argument for date of bill
-                ohe_features: list[str]
-                    Features to be one hot encoded such as introduced_body and bill_type
-                summed_features: list[str]
-                    Features to be summed such as role_name and party_id
-                other_features: list[str]
-                    All other features of interest to be kept as is
-            Returns:
-                pandas dataframe of features
+        converts dataframe to weekly labels
         """
         dfnew = self.inputs["raw"].read()
 

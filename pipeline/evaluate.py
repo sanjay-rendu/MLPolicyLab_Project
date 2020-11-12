@@ -252,9 +252,8 @@ class topk_metric_grid(BaseOperator):
             preds: list of predictions
             score: list of scores
         '''
-        preds = [1] * len(test.index)
         score = [1] * len(test.index)
-        return preds, score
+        return score
 
     def common_sense(self, train, colnames={'dem': 'number_dems', 'repub': 'number_republicans'}):
         ''' Score is # dem sponsors - # repub sponsors
@@ -265,8 +264,7 @@ class topk_metric_grid(BaseOperator):
                 default: {'dem': 'num_dem_sponsors', 'repub': 'num_repub_sponsors'}
         '''
         score = (train[colnames['dem']] - train[colnames['repub']]).tolist()
-        preds = [x > 0 for x in score]
-        return preds, score
+        return score
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):
         """ Returns the metric of the top k% of bills
@@ -323,19 +321,17 @@ class topk_metric_grid(BaseOperator):
                 clf = load(save_file)
         
                 y_prob = clf.predict_proba(X)
-                y_pred = np.array(y_prob > threshold, dtype=np.float)
 
-                res = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
-
+                res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                 precisions.append(temp)
         
-            preds, score = self.baserate(df)
-            preds1, score1 = self.common_sense(df)
+            score = self.baserate(df)
+            score1 = self.common_sense(df)
 
-            baserate = pd.DataFrame(list(zip(list(df.label.values),preds, score)), columns=['label', 'pred', 'score'])
-            common_sense = pd.DataFrame(list(zip(list(df.label.values),preds1, score1)), columns=['label', 'pred', 'score'])
+            baserate = pd.DataFrame(list(zip(list(df.label.values), score)), columns=['label', 'score'])
+            common_sense = pd.DataFrame(list(zip(list(df.label.values), score1)), columns=['label', 'score'])
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
             precisions.append(temp)

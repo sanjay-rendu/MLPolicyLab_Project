@@ -8,43 +8,6 @@ from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
 from joblib import dump, load
 
-class evaluate(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "data": Pandas_Dataframe(self.node.inputs[0]),
-            "model": Pickle_Obj(self.node.inputs[1])
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "output": File_Txt(self.node.outputs[0]),
-            "metrics": File_Txt(self.node.outputs[1])
-        }
-
-    def run(self, target, threshold):
-        df = self.inputs["data"].read()
-        model = self.inputs["model"].read()
-
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
-
-        y_prob = model.predict_proba(X)
-        y_pred = np.array(y_prob > threshold, dtype=np.float)
-
-        acc = accuracy_score(y, y_pred)
-
-        features = list(set(list(df.columns)) - {target} - {'bill_id'})
-        df = df.drop(features)
-        df['pred_probability'] = y_prob
-        df = df.to_csv(sep=' ', index=False)
-
-        self.outputs["output"].write(df)
-        self.outputs["metrics"].write('Accuracy:' + str(acc))
 
 class baseline(BaseOperator):
 
@@ -64,12 +27,10 @@ class baseline(BaseOperator):
     def baserate(self, test):
         ''' Predicts that every bill will pass. Defines the baserate of bill passage.
         returns:
-            preds: list of predictions
             score: list of scores
         '''
-        preds = [1] * len(test.index)
         score = [1] * len(test.index)
-        return preds, score
+        return score
 
     def common_sense(self, train, colnames={'dem': 'number_dems', 'repub': 'number_republicans'}):
         ''' Score is # dem sponsors - # repub sponsors
@@ -80,16 +41,15 @@ class baseline(BaseOperator):
                 default: {'dem': 'num_dem_sponsors', 'repub': 'num_repub_sponsors'}
         '''
         score = (train[colnames['dem']] - train[colnames['repub']]).tolist()
-        preds = [x > 0 for x in score]
-        return preds, score
+        return score
 
     def run(self):
         df = self.inputs["data"].read()
-        preds, score = self.baserate(df)
-        preds1, score1 = self.common_sense(df)
+        score = self.baserate(df)
+        score1 = self.common_sense(df)
 
-        baserate = pd.DataFrame(list(zip(list(df.label.values),preds, score)), columns=['label', 'pred', 'score'])
-        common_sense = pd.DataFrame(list(zip(list(df.label.values),preds1, score1)), columns=['label', 'pred', 'score'])
+        baserate = pd.DataFrame(list(zip(list(df.label.values),score)), columns=['label', 'score'])
+        common_sense = pd.DataFrame(list(zip(list(df.label.values), score1)), columns=['label', 'score'])
 
 
         self.outputs["baserate"].write(baserate)
@@ -113,7 +73,6 @@ class load_model(BaseOperator):
         m = load(model_path)
 
         self.outputs["model"].write(m)
-
 
 class predict_val(BaseOperator):
 
@@ -140,9 +99,8 @@ class predict_val(BaseOperator):
         y = df.as_matrix(columns=[target])
 
         y_prob = model.predict_proba(X)
-        y_pred = np.array(y_prob > threshold, dtype=np.float)
 
-        output = pd.DataFrame(list(zip(list(df[target].values),y_pred,y_prob)), columns=['label', 'pred', 'score'])
+        output = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
 
         self.outputs["prediction"].write(output)
 
@@ -209,7 +167,7 @@ class topk_metric(BaseOperator):
         ax2.set_ylabel("Recall", color="blue")
         fig.savefig(graph_loc)
 
-    def run(self, target, threshold, graph_loc):
+    def run(self, target, graph_loc):
         result = self.inputs["predictions"].read()
         precision = []
         recall = []
@@ -225,7 +183,6 @@ class topk_metric(BaseOperator):
 
         self.outputs['metrics'].write("Precision @ 30%: {} \nRecall @ 30%: {}".format(precision_30, recall_30))
         self.outputs['topk_predictions'].write(df_preds)
-
 
 
 class topk_metric_grid(BaseOperator):
@@ -249,7 +206,6 @@ class topk_metric_grid(BaseOperator):
     def baserate(self, test):
         ''' Predicts that every bill will pass. Defines the baserate of bill passage.
         returns:
-            preds: list of predictions
             score: list of scores
         '''
         score = [1] * len(test.index)
@@ -298,7 +254,7 @@ class topk_metric_grid(BaseOperator):
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
 
-    def run(self, target, threshold, save_path):
+    def run(self, target, save_path):
         num_models = self.inputs["num_models"].read()
 
         #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']

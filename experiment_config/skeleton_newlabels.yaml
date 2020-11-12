@@ -336,7 +336,6 @@ graph:
     operation: evaluate.topk_metric_grid
     arguments:
         target: label
-        threshold: 0.5
         save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
 
   - node_name: validate3
@@ -345,7 +344,6 @@ graph:
     operation: evaluate.predict_val
     arguments:
       target: label
-      threshold: 0.5
 
   - node_name: topk_model3
     inputs: validate3.val_output
@@ -353,7 +351,6 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model3.png
 
   - node_name: topk_baserate3
@@ -362,7 +359,6 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base3.png
 
   - node_name: topk_commonsense3
@@ -371,7 +367,6 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
 
   - node_name: load_model_1
@@ -394,7 +389,6 @@ graph:
     operation: evaluate.predict_val
     arguments:
       target: label
-      threshold: 0.5
 
   - node_name: validate_model_2
     inputs: [select_grid4.fil_val, load_model_2.model]
@@ -402,7 +396,6 @@ graph:
     operation: evaluate.predict_val
     arguments:
       target: label
-      threshold: 0.5
 
   - node_name: topk_model_1
     inputs: validate_model_1.val_output
@@ -410,7 +403,6 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model_1.png
 
   - node_name: topk_model_2
@@ -419,7 +411,6 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model_2.png
 
   - node_name: baseline4
@@ -433,7 +424,6 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base4.png
 
   - node_name: topk_commonsense4
@@ -442,6 +432,5 @@ graph:
     operation: evaluate.topk_metric
     arguments:
       target: label
-      threshold: 0.5
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense4.png
 

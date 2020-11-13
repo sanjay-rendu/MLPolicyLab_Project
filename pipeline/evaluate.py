@@ -89,7 +89,7 @@ class predict_val(BaseOperator):
             "prediction": Pandas_Dataframe(self.node.outputs[0])
         }
 
-    def run(self, target, threshold):
+    def run(self, target):
         df = self.inputs["data"].read()
         model = self.inputs["model"].read()
 
@@ -98,7 +98,7 @@ class predict_val(BaseOperator):
         X = df.as_matrix(columns=features)
         y = df.as_matrix(columns=[target])
 
-        y_prob = model.predict_proba(X)
+        y_prob = model.predict_proba(X)[:, 1]
 
         output = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
 
@@ -161,10 +161,12 @@ class topk_metric(BaseOperator):
         ax.set_xlabel('Percent of Total Bills')
         ax.set_ylabel("Precision", color="red")
         ax.set_title('PR-k of model')
+        ax.set_ylim(0, 1)
 
         ax2 = ax.twinx()
         ax2.plot(x, recalls,color="blue")
         ax2.set_ylabel("Recall", color="blue")
+        ax2.set_ylim(0, 1)
         fig.savefig(graph_loc)
 
     def run(self, target, graph_loc):
@@ -265,18 +267,14 @@ class topk_metric_grid(BaseOperator):
             df = self.inputs["data"+str(split)].read()
             
             features = list(set(list(df.columns)) - {target})
-            precisions = []
-
             X = df.as_matrix(columns=features)
-            if split == 1 or split == 2:
-                model_list = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,17,18,19]
-            else:
-                model_list = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
-            for i in model_list:
+
+            precisions = []
+            for i in range(50):
                 save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
                 clf = load(save_file)
-        
-                y_prob = clf.predict_proba(X)
+
+                y_prob = clf.predict_proba(X)[:, 1]
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
@@ -298,8 +296,8 @@ class topk_metric_grid(BaseOperator):
 
         result = result.T
 
-        styles = ['b-']*12
-        styles += ['r-']*6
+        styles = ['b-']*14
+        styles += ['r-']*36
         #styles += ['m-']*10
         styles += ['k--'] + ['k:']
         fig, ax = plt.subplots(figsize=(12,6))
@@ -312,4 +310,33 @@ class topk_metric_grid(BaseOperator):
         plt.savefig('model_grid.png')
 
         self.outputs['result'].write(result)
+
+
+class choose_best_two(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "result": Pandas_Dataframe(self.node.inputs[0]),
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "model1": Pickle_Obj(self.node.outputs[0]),
+            "model2": Pickle_Obj(self.node.outputs[1])
+        }
+
+    def run(self, split, save_path):
+        result = self.inputs["result"].read()
+        result = result.T
+
+        result['model'] = list(np.arange(len(result.index)))
+        result = result.sort_values(by=[result.columns[split-1]], ascending=False)
+
+        model1 = load(save_path + 'model_split_{:d}_{:d}.joblib'.format(split, int(result['model'][0])))
+        model2 = load(save_path + 'model_split_{:d}_{:d}.joblib'.format(split, int(result['model'][1])))
+
+        self.outputs['model1'].write(model1)
+        self.outputs['model2'].write(model2)
 

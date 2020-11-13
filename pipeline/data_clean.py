@@ -94,8 +94,8 @@ class monthly_row_selector(BaseOperator):
 
         # add the original start date for data
         dfnew[["introduced_date", "final_date", "present_date"]] = dfnew[
-            ["introduced_date", "final_date", "present_date"]].apply(pd.to_datetime)
-        dfnew['original_date'] = pd.to_datetime("'2009-01-07'".replace("'", ""))
+            ["introduced_date", "final_date", "present_date"]].apply(pd.to_datetime, errors='coerce')
+        dfnew['original_date'] = pd.to_datetime("'2009-01-07'".replace("'", ""), errors='coerce')
 
         # prepare df for filtering on every 7th day plus the final day for the bill or session
         conditions = [(dfnew['present_date'] == dfnew['final_date'])]

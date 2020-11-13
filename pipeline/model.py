@@ -76,10 +76,7 @@ class model_grid(BaseOperator):
     @property
     def inputs(self):
         return {
-            "train1": Pandas_Dataframe(self.node.inputs[0]),
-            "train2": Pandas_Dataframe(self.node.inputs[1]),
-            "train3": Pandas_Dataframe(self.node.inputs[2]),
-            "train4": Pandas_Dataframe(self.node.inputs[3])
+            "train": Pandas_Dataframe(self.node.inputs[0]),
         }
 
     @property
@@ -88,30 +85,29 @@ class model_grid(BaseOperator):
             "num_models": Pickle_Obj(self.node.outputs[0])
         }
 
-    def run(self, target, models, save_path):
+    def run(self, target, split, save_path, model_specs):
+        df = self.inputs["train"].read()
+        
+        features = list(set(list(df.columns)) - {target})
 
-        for split in [3,4]:
-            df = self.inputs["train"+str(split)].read()
-            
-            features = list(set(list(df.columns)) - {target})
+        X = df.as_matrix(columns=features)
+        y = df.as_matrix(columns=[target])
 
-            X = df.as_matrix(columns=features)
-            y = df.as_matrix(columns=[target])
-            df = ''
+        i = 50
+        for model_spec in model_specs:
 
-            for (i, model) in enumerate(models):
+            mod_name, func_name = model_spec['model_name'].rsplit('.',1)
+            mod = importlib.import_module(mod_name)
+            func = getattr(mod, func_name)
 
-                mod_name, func_name = model['model_name'].rsplit('.',1)
-                mod = importlib.import_module(mod_name)
-                func = getattr(mod, func_name)
+            for params in model_spec['params_list']:
                 clf = func()
-
-                #clf = model['model_name']()
-                clf.set_params(**model['params'])
+                clf.set_params(**params)
                 clf.fit(X, y)
 
                 save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
                 dump(clf, save_file)
 
-            
-        self.outputs["num_models"].write(len(models))
+                i += 1
+
+        self.outputs["num_models"].write(i)

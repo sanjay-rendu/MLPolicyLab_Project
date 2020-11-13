@@ -33,6 +33,7 @@ class get_lda_model(BaseOperator):
         """
         train = self.inputs["train"].read()
         bill_texts = self.inputs["bill_texts"].read()
+        print(len(bill_texts))
         train_ids = train[col_names["bill_id"]].unique()
         del train
         

@@ -53,20 +53,23 @@ class textSplit(BaseOperator):
         del val
 
         train_sql_query = """
-        select bill_id, doc, bill_description 
+        select bill_id, doc
         from ml_policy_class.bill_texts
-        where bill_id in ({})
+        where bill_id in ({}) and type_id = 1
         """.format(", ".join(train_ids))
 
         val_sql_query = """
-        select bill_id, doc, bill_description 
+        select bill_id, doc
         from ml_policy_class.bill_texts
-        where bill_id in ({})
+        where bill_id in ({}) and type_id = 1
         """.format(", ".join(val_ids))
+
+        print(val_sql_query)
 
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
         txt_train = pg_hook.get_pandas_df(train_sql_query)
         txt_val = pg_hook.get_pandas_df(val_sql_query)
 
+        print(txt_val.shape)
         self.outputs["txt_train"].write(txt_train)
         self.outputs["txt_val"].write(txt_val)

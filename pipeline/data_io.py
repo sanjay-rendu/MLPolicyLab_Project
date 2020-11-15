@@ -47,8 +47,8 @@ class textSplit(BaseOperator):
         train = self.inputs["train"].read()
         val = self.inputs["val"].read()
 
-        train_ids = list(set(train["bill_id"].values))
-        val_ids = list(set(val["bill_id"].values))
+        train_ids = [str(x) for x in set(train["bill_id"].values)]
+        val_ids = [str(x) for x in set(val["bill_id"].values)]
         del train
         del val
 

@@ -37,8 +37,8 @@ class textSplit(BaseOperator):
 
     @property
     def outputs(self):
-        return {"txt_train": Pandas_Dataframe(self.node.inputs[0]),
-                "txt_val": Pandas_Dataframe(self.node.inputs[1])}
+        return {"txt_train": Pandas_Dataframe(self.node.outputs[0]),
+                "txt_val": Pandas_Dataframe(self.node.outputs[1])}
 
     def run(self, conn_id='postgres_bills3'):
         """

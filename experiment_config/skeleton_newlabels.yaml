@@ -96,7 +96,7 @@ graph:
   - node_name: preprocess1 # generic preprocess - can be changed later
     inputs: [select1.fil_train, select1.fil_val]
     outputs: [preprocessed_train, preprocessed_test]
-    operation: sklearn.CustomPreprocess
+    operation: feature_eng.CustomPreprocess
     arguments:
       drop_missing_perc: 0.9 # drop columns that have more then 90% missing
       target_variable: label
@@ -167,7 +167,7 @@ graph:
   - node_name: preprocess2 # generic preprocess - can be changed later
     inputs: [select2.fil_train, select2.fil_val]
     outputs: [preprocessed_train, preprocessed_test]
-    operation: sklearn.CustomPreprocess
+    operation: feature_eng.CustomPreprocess
     arguments:
       drop_missing_perc: 0.9 # drop columns that have more then 90% missing
       target_variable: label
@@ -238,7 +238,7 @@ graph:
   - node_name: preprocess3 # generic preprocess - can be changed later
     inputs: [select3.fil_train, select3.fil_val]
     outputs: [preprocessed_train, preprocessed_test]
-    operation: sklearn.CustomPreprocess
+    operation: feature_eng.CustomPreprocess
     arguments:
       drop_missing_perc: 0.9 # drop columns that have more then 90% missing
       target_variable: label
@@ -310,7 +310,7 @@ graph:
   - node_name: preprocess4 # generic preprocess - can be changed later
     inputs: [select4.fil_train, select4.fil_val]
     outputs: [preprocessed_train, preprocessed_test]
-    operation: sklearn.CustomPreprocess
+    operation: feature_eng.CustomPreprocess
     arguments:
       drop_missing_perc: 0.9 # drop columns that have more then 90% missing
       target_variable: label

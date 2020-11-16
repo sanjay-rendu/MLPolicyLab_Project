@@ -4,6 +4,10 @@ from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj
 from daggit.core.base.factory import BaseOperator
+from sklearn.pipeline import Pipeline
+from daggit.core.oplib.etl import DFFeatureUnion, ColumnExtractor
+from daggit.core.oplib.etl import DFMissingStr, DFOneHot
+from daggit.core.oplib.etl import DFMissingNum
 
 
 class get_lda_model(BaseOperator):
@@ -107,3 +111,61 @@ class doc2vec(BaseOperator):
         model = Doc2Vec(documents, vector_size=20, window=2, min_count=1, workers=4)
 
         self.outputs["doc2vec_model"].write(model)
+
+
+class CustomPreprocess(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {"train": Pandas_Dataframe(self.node.inputs[0]),
+                "test": Pandas_Dataframe(self.node.inputs[1])}
+
+    @property
+    def outputs(self):
+        return {"preprocessed_train": Pandas_Dataframe(self.node.outputs[0]),
+                "preprocessed_test": Pandas_Dataframe(self.node.outputs[1])}
+
+    def run(
+            self,
+            drop_missing_perc,
+            target_variable,
+            ignore_variables=None,
+            categorical_impute=None,
+            numeric_impute=None):
+        train = self.inputs["train"].read()
+        test = self.inputs["test"].read()
+
+        if ignore_variables is not list:
+            ignore_variables = [ignore_variables]
+
+        data_availability = train.describe(
+            include='all').loc['count'] / train.shape[0]
+        selected_cols = data_availability[data_availability >
+                                          drop_missing_perc].index
+        selected_cols = set(*selected_cols) - \
+            (set(target_variable).union(set(*ignore_variables)))
+
+        numeric_cols = list(
+            set(train._get_numeric_data()).intersection(selected_cols))
+        categorical_cols = list(selected_cols - set(numeric_cols))
+
+        preprocess = Pipeline([("features",
+                                DFFeatureUnion([("numeric",
+                                                 Pipeline([("num_sel",
+                                                            ColumnExtractor(numeric_cols)),
+                                                           ("num_impute",
+                                                            DFMissingNum(replace='median'))])),
+                                                ("categorical",
+                                                 Pipeline([("cat_sel",
+                                                            ColumnExtractor(categorical_cols)),
+                                                           ("str_impute",
+                                                            DFMissingStr(replace='most_frequent')),
+                                                           ("one_hot",
+                                                            DFOneHot())]))]))])
+
+        processed_train = preprocess.fit_transform(train)
+        processed_train[target_variable] = train[target_variable]
+        processed_test = preprocess.transform(test)
+
+        self.outputs["preprocessed_train"].write(processed_train)
+        self.outputs["preprocessed_test"].write(processed_test)

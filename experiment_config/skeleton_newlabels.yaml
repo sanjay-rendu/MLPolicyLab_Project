@@ -417,7 +417,7 @@ graph:
 
   - node_name: models4
     inputs: [lr_grid4.models, dt_grid4.models]
-    output: dir
+    outputs: dir
     operation: model.dummy_folder
 
 ## Results ##

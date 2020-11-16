@@ -109,7 +109,7 @@ class model_grid(BaseOperator):
             params['model'] = clf
             list_of_models.append(params)
 
-        model_dir = self.outputs["models"].read_loc()
+        model_dir = os.path.dirname(self.outputs["models"].read_loc())
 
         if not os.path.exists(model_dir):
             os.mkdir(model_dir)

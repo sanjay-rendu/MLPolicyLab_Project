@@ -26,11 +26,6 @@ graph:
     inputs: sql_loc_bill
     outputs: bill_data
     operation: data_io.fetch_sql
-
-  - node_name: fetch_bill_text
-    inputs: sql_bill_text
-    outputs: bill_text
-    operation: data_io.fetch_sql
     
   - node_name: monthly_snapshots
     inputs: fetch_labeled_data.bill_data

@@ -86,18 +86,9 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['days_to_final', 'days_from_introduction',
-                          'number_dems', 'number_republicans', 'is_bipartisan', 'label',
-                          'topic_0', 'topic_1', 'topic_2', 'topic_3', 'topic_4', 'topic_5',
-                          'topic_6', 'topic_7', 'topic_8', 'topic_9']
-  - node_name: model_logistic_regression3
-    inputs: select3.fil_train
-    outputs: model
-    operation: model.logistic_regression_trainer
-    arguments:
-      target: label
-      max_iter: 200
-
+      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
+                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
+                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
 
   ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
   - node_name: split4
@@ -599,21 +590,6 @@ graph:
     arguments:
         target: label
         save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
-
-  - node_name: validate3
-    inputs: [select3.fil_val, model_logistic_regression3.model]
-    outputs: val_output
-    operation: evaluate.predict_val
-    arguments:
-      target: label
-
-  - node_name: topk_model3
-    inputs: validate3.val_output
-    outputs: [metrics_lr_model3, model_preds]
-    operation: evaluate.topk_metric
-    arguments:
-      target: label
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model3.png
 
   - node_name: topk_baserate3
     inputs: baseline3.baserate

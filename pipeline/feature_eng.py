@@ -85,7 +85,7 @@ class topic_model(BaseOperator):
         bill_df = bill_df.reindex(columns=bill_df.columns.tolist() + lda_cols)
         bill_df[lda_cols] = lda_vals
 
-        df.merge(bill_df, on="bill_id", how = "left")
+        df = df.merge(bill_df, on="bill_id", how = "left")
         self.outputs["df_out"].write(df)
 
 class doc2vec(BaseOperator):

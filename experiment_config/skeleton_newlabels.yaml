@@ -73,16 +73,16 @@ graph:
     operation: evaluate.baseline
 
   - node_name: topk_baserate1
-    inputs: baseline3.baserate
+    inputs: baseline1.baserate
     outputs: [metrics_base1, base_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base1.png
 
-  - node_name: topk_commonsense3
-    inputs: baseline3.commonsense
-    outputs: [metrics_commonsense3, commonsense_preds]
+  - node_name: topk_commonsense1
+    inputs: baseline1.commonsense
+    outputs: [metrics_commonsense1, commonsense_preds]
     operation: evaluate.topk_metric
     arguments:
       target: label
@@ -140,7 +140,7 @@ graph:
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base2.png
 
   - node_name: topk_commonsense2
-    inputs: baseline3.commonsense
+    inputs: baseline2.commonsense
     outputs: [metrics_commonsense2, commonsense_preds]
     operation: evaluate.topk_metric
     arguments:

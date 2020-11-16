@@ -56,33 +56,24 @@ graph:
       prediction_date: '2014-01-01'
       validation_end_date: '2015-07-01'
 
-## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
-  - node_name: split4
-    inputs: monthly_snapshots.monthly_bill_data
-    outputs: [train, val]
-    operation: split.timeSplit
-    arguments:
-      prediction_date: '2016-01-01'
-      validation_end_date: '2017-07-01'
-  
   - node_name: bill_text3
     inputs: [split3.train, split3.val]
     outputs: [train, val]
     operation: data_io.textSplit
 
   - node_name: lda_model3
-    inputs: [split3.train, bill_text3.train]
+    inputs: bill_text3.train
     outputs: [vectorizer, lda_model]
     operation: feature_eng.get_lda_model
 
   - node_name: feature_eng_train3
     inputs: [split3.train, bill_text3.train, lda_model3.vectorizer, lda_model3.lda_model]
-    outputs: [df]
+    outputs: df
     operation: feature_eng.topic_model
 
   - node_name: feature_eng_val3
     inputs: [split3.val, bill_text3.val, lda_model3.vectorizer, lda_model3.lda_model]
-    outputs: [df]
+    outputs: df
     operation: feature_eng.topic_model
 
   - node_name: baseline3
@@ -98,7 +89,7 @@ graph:
       selected_features: ['days_to_final', 'days_from_introduction',
                           'number_dems', 'number_republicans', 'is_bipartisan', 'label',
                           'topic_0', 'topic_1', 'topic_2', 'topic_3', 'topic_4', 'topic_5',
-                          'topic_6', 'topic_7', 'topic_8', 'topic_9'] 
+                          'topic_6', 'topic_7', 'topic_8', 'topic_9']
   - node_name: model_logistic_regression3
     inputs: select3.fil_train
     outputs: model
@@ -106,6 +97,16 @@ graph:
     arguments:
       target: label
       max_iter: 200
+
+
+  ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
+  - node_name: split4
+    inputs: monthly_snapshots.monthly_bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2016-01-01'
+      validation_end_date: '2017-07-01'
 
   - node_name: select_grid1
     inputs: [split1.train, split1.val]

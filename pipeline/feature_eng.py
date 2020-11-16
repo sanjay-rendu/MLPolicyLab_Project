@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
-#from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj
 from daggit.core.base.factory import BaseOperator
 
@@ -9,8 +9,7 @@ from daggit.core.base.factory import BaseOperator
 class get_lda_model(BaseOperator):
     @property
     def inputs(self):
-        return {"train": Pandas_Dataframe(self.node.inputs[0]),
-                "bill_texts": Pandas_Dataframe(self.node.inputs[1])}
+        return {"bill_texts": Pandas_Dataframe(self.node.inputs[0])}
 
     @property
     def outputs(self):
@@ -31,22 +30,12 @@ class get_lda_model(BaseOperator):
             Returns:
                 train and test pandas dataframe of text features
         """
-        train = self.inputs["train"].read()
         bill_texts = self.inputs["bill_texts"].read()
-        print(len(bill_texts))
-        train_ids = train[col_names["bill_id"]].unique()
-        del train
-        
-        train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
-        #train_docs = bill_texts[train_mask]["doc"].values.astype('U')
-        #del bill_texts
-        
-        
+
         tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
-        tf = tf_vectorizer.fit_transform(bill_texts[train_mask]["doc"])
+        tf = tf_vectorizer.fit_transform(bill_texts["doc"])
         print(len(tf_vectorizer.vocabulary_))
         del bill_texts
-        #del train_docs
 
         lda = LDA(n_components=num_topics, max_iter=5, learning_method="online", learning_offset=50., random_state=0).fit(tf)
 
@@ -85,8 +74,6 @@ class topic_model(BaseOperator):
         bill_texts = self.inputs["bill_texts"].read()
         vec = self.inputs["vectorizer"].read()
         lda = self.inputs["lda_model"].read()
-        text_mask = bill_texts["bill_id"].isin(df["bill_id"].unique())
-        bill_texts = bill_texts[text_mask]
         bill_df = bill_texts.drop("doc", axis = 1)
 
         tf = vec.transform(bill_texts["doc"])
@@ -105,28 +92,18 @@ class doc2vec(BaseOperator):
     
     @property
     def inputs(self):
-        return {"train": Pandas_Dataframe(self.node.inputs[0]),
-                "val": Pandas_Dataframe(self.node.inputs[1]),
-                "bill_texts": Pandas_Dataframe(self.node.inputs[2])}
+        return {"bill_texts": Pandas_Dataframe(self.node.inputs[0])}
 
     @property
     def outputs(self):
-        return {"train": Pandas_Dataframe(self.node.outputs[0]),
-                "val": Pandas_Dataframe(self.node.outputs[1])}
+        return {"doc2vec_model": Pickle_Obj(self.node.outputs[0])}
 
     def run(self, col_names = {"bill_id": "bill_id", "doc": "doc"}, num_features = 1000, num_topics = 10):
- 
-        train = self.inputs["train"].read()
-        val = self.inputs["val"].read()
+
         bill_texts = self.inputs["bill_texts"].read()
-        train_ids = train[col_names["bill_id"]].unique()
-        
-        train_mask = bill_texts[col_names["bill_id"]].isin(train_ids)
-        df_train = bill_texts[train_mask]
-        df_test = bill_texts[~train_mask]
-        train_docs = df_train[col_names["doc"]].values.astype('U')
-        test_docs = df_test[col_names["doc"]].values.astype('U')
-        
+
+        train_docs = bill_texts[col_names["doc"]].values.astype('U')
         documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(train_docs)]
         model = Doc2Vec(documents, vector_size=20, window=2, min_count=1, workers=4)
-        
+
+        self.outputs["doc2vec_model"].write(model)

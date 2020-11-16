@@ -110,10 +110,10 @@ graph:
       operation: model.model_grid
       arguments:
         target: label
-        model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+        model_spec: [{'model_name': 'sklearn.linear_model.LogisticRegression',
         'max_iter': 200,
         'penalty': ['l1','l2'],
-        'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+        'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}]
 
 ## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
   - node_name: split2

@@ -212,7 +212,7 @@ graph:
 
   - node_name: dt_grid2
     inputs: preprocess2.preprocessed_train
-    outputs: models2
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label

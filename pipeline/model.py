@@ -121,7 +121,7 @@ class dummy_folder(BaseOperator):
 
     @property
     def inputs(self):
-        return [ReadDaggitTask_Folderpath(x) for x in self.node.inputs]
+        return [ReadDaggitTask_Folderpath(x).read_loc() for x in self.node.inputs]
 
     @property
     def outputs(self):

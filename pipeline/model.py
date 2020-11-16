@@ -1,5 +1,5 @@
 import numpy as np
-from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj, File_Txt
+from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj, ReadDaggitTask_Folderpath
 from daggit.core.base.factory import BaseOperator
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier as RF
@@ -82,10 +82,10 @@ class model_grid(BaseOperator):
     @property
     def outputs(self):
         return {
-            "num_models": Pickle_Obj(self.node.outputs[0])
+            "models": Pickle_Obj(self.node.outputs[0])
         }
 
-    def run(self, target, split, save_path, model_specs):
+    def run(self, target, split, save_path, model_spec):
         df = self.inputs["train"].read()
         
         features = list(set(list(df.columns)) - {target})
@@ -93,21 +93,19 @@ class model_grid(BaseOperator):
         X = df.as_matrix(columns=features)
         y = df.as_matrix(columns=[target])
 
-        i = 50
-        for model_spec in model_specs:
+        mod_name, func_name = model_spec['model_name'].rsplit('.',1)
+        mod = importlib.import_module(mod_name)
+        func = getattr(mod, func_name)
+        del model_spec['model_name']
 
-            mod_name, func_name = model_spec['model_name'].rsplit('.',1)
-            mod = importlib.import_module(mod_name)
-            func = getattr(mod, func_name)
+        params_list = [dict(zip(model_spec, t)) for t in zip(*model_spec.values())]
 
-            for params in model_spec['params_list']:
-                clf = func()
-                clf.set_params(**params)
-                clf.fit(X, y)
+        list_of_models = []
+        for params in params_list:
+            clf = func()
+            clf.set_params(**params)
+            clf.fit(X, y)
+            params['model'] = clf
+            list_of_models.append(params)
 
-                save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
-                dump(clf, save_file)
-
-                i += 1
-
-        self.outputs["num_models"].write(i)
+        self.outputs["num_models"].write(list_of_models)

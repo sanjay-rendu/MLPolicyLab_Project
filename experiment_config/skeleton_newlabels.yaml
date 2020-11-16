@@ -124,7 +124,7 @@ graph:
 
   - node_name: models1
     inputs: [lr_grid1.models, dt_grid1.models]
-    output: dir
+    outputs: dir
     operation: model.dummy_folder
 
 
@@ -222,7 +222,7 @@ graph:
 
   - node_name: models2
     inputs: [lr_grid2.models, dt_grid2.models]
-    output: dir
+    outputs: dir
     operation: model.dummy_folder
 
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
@@ -319,7 +319,7 @@ graph:
 
   - node_name: models3
     inputs: [lr_grid3.models, dt_grid3.models]
-    output: dir
+    outputs: dir
     operation: model.dummy_folder
 
 ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##

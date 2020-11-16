@@ -85,7 +85,7 @@ class model_grid(BaseOperator):
             "models": Pickle_Obj(self.node.outputs[0])
         }
 
-    def run(self, target, split, save_path, model_spec):
+    def run(self, target, model_spec):
         df = self.inputs["train"].read()
         
         features = list(set(list(df.columns)) - {target})

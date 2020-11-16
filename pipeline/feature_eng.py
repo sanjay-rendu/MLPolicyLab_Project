@@ -142,7 +142,7 @@ class CustomPreprocess(BaseOperator):
             include='all').loc['count'] / train.shape[0]
         selected_cols = data_availability[data_availability >
                                           drop_missing_perc].index
-        selected_cols = set(*selected_cols) - \
+        selected_cols = set(selected_cols) - \
             (set(target_variable).union(set(*ignore_variables)))
 
         numeric_cols = list(

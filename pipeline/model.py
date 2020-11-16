@@ -92,8 +92,7 @@ class model_grid(BaseOperator):
 
         X = df.as_matrix(columns=features)
         y = df.as_matrix(columns=[target])
-
-        model_spec = model_spec[0]
+        
         mod_name, func_name = model_spec['model_name'].rsplit('.',1)
         mod = importlib.import_module(mod_name)
         func = getattr(mod, func_name)

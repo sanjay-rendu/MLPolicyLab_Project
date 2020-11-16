@@ -1,37 +1,89 @@
-import re
+from daggit.core.base.factory import BaseOperator
+from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj
+
+import re, torch
 from torchtext import data
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-def clean_str(string):
-    """
-    Tokenization/string cleaning for all datasets except for SST.
-    Original taken from https://github.com/yoonkim/CNN_sentence/blob/master/process_data.py
-    """
-    string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
-    string = re.sub(r"\'s", " \'s", string)
-    string = re.sub(r"\'ve", " \'ve", string)
-    string = re.sub(r"n\'t", " n\'t", string)
-    string = re.sub(r"\'re", " \'re", string)
-    string = re.sub(r"\'d", " \'d", string)
-    string = re.sub(r"\'ll", " \'ll", string)
-    string = re.sub(r",", " , ", string)
-    string = re.sub(r"!", " ! ", string)
-    string = re.sub(r"\(", " \( ", string)
-    string = re.sub(r"\)", " \) ", string)
-    string = re.sub(r"\?", " \? ", string)
-    string = re.sub(r"\s{2,}", " ", string)
-    return string.strip().lower()
+class CNN(BaseOperator):
 
-class bill_generator(data.Dataset):
-    @static_method
+    @property
+    def inputs(self):
+        return {"train_text": Pandas_Dataframe(self.node.inputs[0]),
+                "val_text": Pandas_Dataframe(self.node.inputs[1]),
+                "train": Pandas_Dataframe(self.node.inputs[2]),
+                "val": Pandas_Dataframe(self.node.inputs[3])}
+
+    @property
+    def outputs(self):
+        return {"train": Pandas_Dataframe(self.node.outputs[0]),
+                "val": Pandas_Dataframe(self.node.outputs[1]),
+                "model": Pickle_Obj(self.node.outputs[2])}
+
+
+    def run(self, params=None):
+        train = self.inputs["train"].read()
+        ## get the last row in a dataframe
+        train = train.groupby('bill_id').tail(1)[["bill_id", "label"]]
+        train_text = self.inputs["train_text"].read()
+        train = train.merge(train_text, on = "bill_id", how="left")
+        del train_text
+
+        val = self.inputs["val"].read()
+        val = val.groupby("bill_id").tail(1)[["bill_id", "label"]]
+        val_text = self.inputs["val_text"].read()
+        val = val.merge(val_text, on = "bill_id", how = "left")
+        del val_text
+
+        cnn = CNN_class(train, val)
+        cnn.train()
+        self.outputs["model"].write(cnn.cnn)
+
+        train_features = cnn.get_features(cnn.train_iter)
+        train = train.reindex(columns=train.columns.tolist() + ["cnn0", "cnn1"])
+        train["cnn0"] = train_features[:,0]
+        train["cnn1"] = train_features[:,1]
+        del train_features
+
+        val_features = cnn.get_features(cnn.val_iter)
+        val = val.reindex(columns = val.columns.tolist() + ["cnn0", "cnn1"])
+        val["cnn0"] = val_features[:,0]
+        val["cnn1"] = val_features[:,1]
+        del val_features
+
+        self.outputs["train"].write(train)
+        self.outputs["val"].write(val)
+
+
+class MR(data.Dataset):
+    @staticmethod
     def sort_key(ex):
         return len(ex.text)
-    
-    def __init__(self, text_field, label_field, df):
-         """Create an MR dataset instance given a path and fields.
+
+    def clean_str(self, string):
+        """
+        Tokenization/string cleaning for all datasets except for SST.
+        Original taken from https://github.com/yoonkim/CNN_sentence/blob/master/process_data.py
+        """
+        string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
+        string = re.sub(r"\'s", " \'s", string)
+        string = re.sub(r"\'ve", " \'ve", string)
+        string = re.sub(r"n\'t", " n\'t", string)
+        string = re.sub(r"\'re", " \'re", string)
+        string = re.sub(r"\'d", " \'d", string)
+        string = re.sub(r"\'ll", " \'ll", string)
+        string = re.sub(r",", " , ", string)
+        string = re.sub(r"!", " ! ", string)
+        string = re.sub(r"\(", " \( ", string)
+        string = re.sub(r"\)", " \) ", string)
+        string = re.sub(r"\?", " \? ", string)
+        string = re.sub(r"\s{2,}", " ", string)
+        return string.strip().lower()
+
+    def __init__(self, text_field, label_field, train = None, val = None, examples = None):
+        """Create an MR dataset instance given a path and fields.
         Arguments:
             text_field: The field that will be used for text data.
             label_field: The field that will be used for label data.
@@ -40,25 +92,22 @@ class bill_generator(data.Dataset):
             Remaining keyword arguments: Passed to the constructor of
                 data.Dataset.
         """
-        text_field.preprocessing = data.Pipeline(clean_str)
+        text_field.preprocessing = data.Pipeline(self.clean_str)
         fields = [('text', text_field), ('label', label_field)]
-        
-        examples = []
-        for idx, r in df.iterrows():
-            examples.append(data.Example.fromlist([r['doc'], r['label'], fields))
-        super(MR, self).__init__(examples, fields, **kwargs)
+        if examples is None:
+            examples = []
+            for idx, r in train.iterrows():
+                examples.append(data.Example.fromlist([r['doc'], r['label']], fields))
+            for idx, r in val.iterrows():
+                examples.append(data.Example.fromlist([r['doc'], r['label']], fields))
+        super(MR, self).__init__(examples, fields)
 
-    def get_data(cls, text_field, label_field, shuffle = True):
-        examples = cls(text_field, label_field, df).examples
-        if shuffle:
-            random.shuffle(examples)
+    @classmethod
+    def splits(cls, text_field, label_field, train, val, val_index):
+        examples = cls(text_field, label_field, train, val).examples
 
-def mr(text_field, label_field):
-    text_data = MR.get_data(text_field, label_field, df)
-    text_field.build_vocab(text_data)
-    label_field.build_vocab(text_data)
-    data_iter = data.Iterator.splits((text_data))
-    return data_iter
+        return (cls(text_field, label_field, examples=examples[:val_index]),
+                cls(text_field, label_field, examples=examples[val_index:]))
 
 class CNN_Text(nn.Module):
     def __init__(self, embed_num, embed_dim, class_num, kernel_num, kernel_sizes):
@@ -84,90 +133,100 @@ class CNN_Text(nn.Module):
         logit = self.fc1(x)  # (N, C)
         return logit
 
-def eval(data_iter, model):
-    model.eval()
-    corrects, avg_loss = 0, 0
-    for batch in data_iter:
-        feature, target = batch.text, batch.label
-        feature.t_(), target.sub_(1)  # batch first, index align
-        feature, target = feature.cuda(), target.cuda()
-        logit = model(feature)
-        loss = F.cross_entropy(logit, target, size_average=False)
+class CNN_class():
+    def __init__(self, train, val):
+        text_field = data.Field(lower=True)
+        label_field = data.Field(sequential=False)
+        self.train_iter, self.val_iter = self.mr(text_field, label_field, train, val, len(train))
+        embed_num = len(text_field.vocab)
+        class_num = len(label_field.vocab) - 1
+        kernel_sizes = [3, 4, 5]
+        embed_dim = 128
+        kernel_num = 100
 
-        avg_loss += loss.item()
-        correct = (torch.max(logit, 1)
-                     [1].view(target.size()).data == target.data)
-        print(correct)
-        corrects += correct.sum()
+        # model
+        self.cnn = CNN_Text(embed_num, embed_dim, class_num, kernel_num, kernel_sizes)
 
-    size = len(data_iter.dataset)
-    avg_loss /= size
-    accuracy = 100.0 * corrects/size
-    print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss,
-                                                                       accuracy,
-                                                                       corrects,
-                                                                       size))
-    return accuracy
+    def mr(self, text_field, label_field, train, val, val_index):
+        train_data, val_data = MR.splits(text_field, label_field, train, val, val_index)
+        text_field.build_vocab(train_data, val_data)
+        label_field.build_vocab(train_data, val_data)
+        data_iter = data.Iterator.splits((train_data, val_data),
+                                batch_sizes=(128, 128))
+        return data_iter
 
-def save(model, save_dir, save_prefix, steps):
-    if not os.path.isdir(save_dir):
-        os.makedirs(save_dir)
-    save_prefix = os.path.join(save_dir, save_prefix)
-    save_path = '{}_steps_{}.pt'.format(save_prefix, steps)
-    torch.save(model.state_dict(), save_path)
-
-def train(train_iter, model):
-    model.cuda()
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=.001)
-
-    steps = 0
-    best_acc = 0
-    last_step = 0
-    model.train()
-    for epoch in range(100):
-        for batch in train_iter:
+    def get_features(self, data_iter):
+        self.cnn.eval()
+        all_logits = []
+        for batch in data_iter:
             feature, target = batch.text, batch.label
             feature.t_(), target.sub_(1)  # batch first, index align
             feature, target = feature.cuda(), target.cuda()
+            logit = self.cnn(feature).data.cpu().numpy()
+            all_logits.append(logit)
 
-            optimizer.zero_grad()
-            logit = model(feature)
-            loss = F.cross_entropy(logit, target)
-            loss.backward()
-            optimizer.step()
+        return np.concatenate(all_logits)
 
-            steps += 1
-            if steps % 1 == 0:
-                corrects = (torch.max(logit, 1)[1].view(target.size()).data == target.data).sum()
-                accuracy = 100.0 * corrects/batch.batch_size
-                print(
-                    '\rBatch[{}] - loss: {:.6f}  acc: {:.4f}%({}/{})'.format(steps,
-                                                                             loss.item(),
-                                                                             accuracy.item(),
-                                                                             corrects.item(),
-                                                                             batch.batch_size))
-            if steps % 100 == 0:
-                dev_acc = eval(train_iter, model)
-                if dev_acc > best_acc:
-                    best_acc = dev_acc
-                    last_step = steps
-                    save(model, 'snapshot', 'best', steps)
-                else:
-                    if steps - last_step >= 1000:
-                        print('early stop by {} steps.'.format(1000))
-            elif steps % 500 == 0:
-                save(model, 'snapshot', 'snapshot', steps)
-    save(model, 'snapshot', 'final', steps)
+    def eval(self, data_iter):
+        self.cnn.eval()
+        corrects, avg_loss = 0, 0
+        for batch in data_iter:
+            feature, target = batch.text, batch.label
+            feature.t_(), target.sub_(1)  # batch first, index align
+            feature, target = feature.cuda(), target.cuda()
+            logit = self.cnn(feature)
+            loss = F.cross_entropy(logit, target, size_average=False)
 
+            avg_loss += loss.item()
+            correct = (torch.max(logit, 1)
+                         [1].view(target.size()).data == target.data)
+            corrects += correct.sum()
 
-if __name__ == "__main__":
-    embed_num = len(text_field.vocab)
-    class_num = len(label_field.vocab) - 1
-    kernel_sizes = [3, 4, 5]
-    embed_dim = 128
-    kernel_num = 100
+        size = len(data_iter.dataset)
+        avg_loss /= size
+        accuracy = 100.0 * corrects/size
+        print('\nEvaluation - loss: {:.6f}  acc: {:.4f}%({}/{}) \n'.format(avg_loss,
+                                                                           accuracy,
+                                                                           corrects,
+                                                                           size))
+        return accuracy
 
-    # model
-    cnn = CNN_Text(embed_num, embed_dim, class_num, kernel_num, kernel_sizes)
-    train(train_iter, dev_iter, cnn)
+    def save(self, model, save_dir, save_prefix, steps):
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+        save_prefix = os.path.join(save_dir, save_prefix)
+        save_path = '{}_steps_{}.pt'.format(save_prefix, steps)
+        torch.save(model.state_dict(), save_path)
+
+    def train(self):
+        self.cnn.cuda()
+
+        optimizer = torch.optim.Adam(self.cnn.parameters(), lr=.001)
+
+        steps = 0
+        best_acc = 0
+        last_step = 0
+        self.cnn.train()
+        for epoch in range(100):
+            for batch in self.train_iter:
+                feature, target = batch.text, batch.label
+                feature.t_(), target.sub_(1)  # batch first, index align
+                feature, target = feature.cuda(), target.cuda()
+
+                optimizer.zero_grad()
+                logit = self.cnn(feature)
+                loss = F.cross_entropy(logit, target)
+                loss.backward()
+                optimizer.step()
+
+                steps += 1
+                if steps % 1 == 0:
+                    corrects = (torch.max(logit, 1)[1].view(target.size()).data == target.data).sum()
+                    accuracy = 100.0 * corrects/batch.batch_size
+                    print(
+                        '\rBatch[{}] - loss: {:.6f}  acc: {:.4f}%({}/{})'.format(steps,
+                                                                                 loss.item(),
+                                                                                 accuracy.item(),
+                                                                                 corrects.item(),
+                                                                                 batch.batch_size))
+        self.save(self.cnn, 'snapshot', 'final', steps)

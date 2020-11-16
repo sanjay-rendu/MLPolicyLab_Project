@@ -88,9 +88,21 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
-                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
-                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
+      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_week_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9','label']
+
+  - node_name: preprocess1 # generic preprocess - can be changed later
+    inputs: [select1.fil_train, select1.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: sklearn.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
 
 ## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
   - node_name: split2
@@ -147,9 +159,21 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
-                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
-                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
+      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_week_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9','label']
+
+  - node_name: preprocess2 # generic preprocess - can be changed later
+    inputs: [select2.fil_train, select2.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: sklearn.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
 
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
   - node_name: split3
@@ -206,9 +230,21 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
-                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
-                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
+      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_week_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9','label']
+
+  - node_name: preprocess3 # generic preprocess - can be changed later
+    inputs: [select3.fil_train, select3.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: sklearn.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
 
   ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
   - node_name: split4
@@ -266,10 +302,21 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
-                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
-                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
+      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_week_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9','label']
 
+  - node_name: preprocess4 # generic preprocess - can be changed later
+    inputs: [select4.fil_train, select4.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: sklearn.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
 
   ## grid search nodes -- move under appropriate split seections
 

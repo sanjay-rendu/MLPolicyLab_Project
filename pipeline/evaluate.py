@@ -195,8 +195,7 @@ class topk_metric_grid(BaseOperator):
             "data1": Pandas_Dataframe(self.node.inputs[0]),
             "data2": Pandas_Dataframe(self.node.inputs[1]),
             "data3": Pandas_Dataframe(self.node.inputs[2]),
-            "data4": Pandas_Dataframe(self.node.inputs[3]),
-            "num_models": Pickle_Obj(self.node.inputs[4])
+            "data4": Pandas_Dataframe(self.node.inputs[3])
         }
 
     @property
@@ -257,7 +256,6 @@ class topk_metric_grid(BaseOperator):
 
 
     def run(self, target, save_path):
-        num_models = self.inputs["num_models"].read()
 
         #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
         idx_list = ['2011', '2013', '2015', '2017']

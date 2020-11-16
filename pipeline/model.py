@@ -82,7 +82,7 @@ class model_grid(BaseOperator):
     @property
     def outputs(self):
         return {
-            "models": Pickle_Obj(self.node.outputs[0])
+            "models": ReadDaggitTask_Folderpath(self.node.outputs[0])
         }
 
     def run(self, target, model_spec):
@@ -108,4 +108,5 @@ class model_grid(BaseOperator):
             params['model'] = clf
             list_of_models.append(params)
 
-        self.outputs["models"].write(list_of_models)
+        save_file = self.outputs["models"].read_loc() + '{}.joblib'.format(func_name)
+        dump(list_of_models, save_file)

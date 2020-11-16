@@ -18,8 +18,7 @@ outputs:
   metrics_base4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics4.txt"
   metrics_commonsense4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics4.txt"
 
-  saved_models1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_files.txt"
-  metrics_lr_model1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_grid_metrics.txt"
+  saved_models1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models1/"
 
 graph:
   - node_name: fetch_labeled_data
@@ -106,7 +105,7 @@ graph:
 
   - node_name: lr_grid1
     inputs: preprocess1.preprocessed_train
-    outputs: models
+    outputs: saved_models1
     operation: model.model_grid
     arguments:
       target: label
@@ -117,7 +116,7 @@ graph:
 
   - node_name: dt_grid1
     inputs: preprocess1.preprocessed_train
-    outputs: models
+    outputs: saved_models1
     operation: model.model_grid
     arguments:
       target: label

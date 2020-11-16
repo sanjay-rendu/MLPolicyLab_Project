@@ -126,7 +126,7 @@ class dummy_folder(BaseOperator):
     @property
     def outputs(self):
         return {
-            "models_dir": ReadDaggitTask_Folderpath(self.node.outputs[0])
+            "models_dir": ReadDaggitTask_Folderpath(self.node.outputs[0]).read_loc()
         }
 
     def run(self):

@@ -38,6 +38,40 @@ graph:
       prediction_date: '2010-01-01'
       validation_end_date: '2011-07-01'
 
+  - node_name: bill_text1
+    inputs: [split1.train, split1.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
+
+  - node_name: lda_model1
+    inputs: bill_text1.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
+
+  - node_name: feature_eng_train1
+    inputs: [split1.train, bill_text1.train, lda_model1.vectorizer, lda_model1.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: feature_eng_val1
+    inputs: [split1.val, bill_text1.val, lda_model1.vectorizer, lda_model1.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: baseline1
+    inputs: split1.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: select1
+    inputs: [feature_eng_train1.df, feature_eng_val1.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
+                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
+                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
+
 ## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
   - node_name: split2
     inputs: monthly_snapshots.monthly_bill_data
@@ -46,6 +80,40 @@ graph:
     arguments:
       prediction_date: '2012-01-01'
       validation_end_date: '2013-07-01'
+
+  - node_name: bill_text2
+    inputs: [split2.train, split2.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
+
+  - node_name: lda_model2
+    inputs: bill_text2.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
+
+  - node_name: feature_eng_train2
+    inputs: [split2.train, bill_text2.train, lda_model2.vectorizer, lda_model2.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: feature_eng_val2
+    inputs: [split2.val, bill_text2.val, lda_model2.vectorizer, lda_model2.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: baseline2
+    inputs: split2.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: select2
+    inputs: [feature_eng_train2.df, feature_eng_val2.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
+                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
+                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
 
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
   - node_name: split3
@@ -98,6 +166,43 @@ graph:
     arguments:
       prediction_date: '2016-01-01'
       validation_end_date: '2017-07-01'
+
+  - node_name: bill_text4
+    inputs: [split4.train, split4.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
+
+  - node_name: lda_model4
+    inputs: bill_text4.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
+
+  - node_name: feature_eng_train4
+    inputs: [split4.train, bill_text4.train, lda_model4.vectorizer, lda_model4.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: feature_eng_val4
+    inputs: [split4.val, bill_text4.val, lda_model4.vectorizer, lda_model4.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: baseline4
+    inputs: split4.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: select4
+    inputs: [feature_eng_train4.df, feature_eng_val4.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['days_to_final','days_from_introduction','number_dems','number_republicans','is_bipartisan',
+                          'introduced_body','subjects','day_from_week_start', 'topic_0', 'topic_1', 'topic_2',
+                          'topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7', 'topic_8', 'topic_9','label']
+
+
+  ## grid search nodes -- move under appropriate split seections
 
   - node_name: select_grid1
     inputs: [split1.train, split1.val]

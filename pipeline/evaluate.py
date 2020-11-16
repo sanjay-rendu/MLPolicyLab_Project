@@ -267,7 +267,7 @@ class topk_metric_grid(BaseOperator):
 
         for split in [1, 2, 3, 4]:
             df = self.inputs["data"+str(split)].read()
-            model_dir = self.inputs["models"+str(split)].read_loc()
+            model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
 
             directory = os.fsencode(model_dir)
 

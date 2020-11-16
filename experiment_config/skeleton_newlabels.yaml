@@ -105,7 +105,7 @@ graph:
       categorical_impute: most_frequent
 
   - node_name: lr_grid1
-    inputs: select_grid1.fil_train
+    inputs: preprocess1.preprocessed_train
     outputs: models
     operation: model.model_grid
     arguments:

@@ -6,9 +6,18 @@ inputs:
   sql_bill_text: "/data/groups/bills3/mlpp_project_home/experiment_config/bill_texts.sql"
 
 outputs:
-  metrics_lr_model3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_metrics.txt"
-  metrics_base3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics.txt"
-  metrics_commonsense3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics.txt"
+  metrics_base1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics1.txt"
+  metrics_commonsense1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics1.txt"
+
+  metrics_base2: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics2.txt"
+  metrics_commonsense2: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics2.txt"
+
+  metrics_base3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics3.txt"
+  metrics_commonsense3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics3.txt"
+
+  metrics_base4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics4.txt"
+  metrics_commonsense4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics4.txt"
+
   saved_models1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_files.txt"
   metrics_lr_model1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_grid_metrics.txt"
 
@@ -63,6 +72,22 @@ graph:
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
 
+  - node_name: topk_baserate1
+    inputs: baseline3.baserate
+    outputs: [metrics_base1, base_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base1.png
+
+  - node_name: topk_commonsense3
+    inputs: baseline3.commonsense
+    outputs: [metrics_commonsense3, commonsense_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
+
   - node_name: select1
     inputs: [feature_eng_train1.df, feature_eng_val1.df]
     outputs: [fil_train, fil_val]
@@ -105,6 +130,22 @@ graph:
     inputs: split2.val
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
+
+  - node_name: topk_baserate2
+    inputs: baseline2.baserate
+    outputs: [metrics_base2, base_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base2.png
+
+  - node_name: topk_commonsense2
+    inputs: baseline3.commonsense
+    outputs: [metrics_commonsense2, commonsense_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense2.png
 
   - node_name: select2
     inputs: [feature_eng_train2.df, feature_eng_val2.df]
@@ -149,6 +190,22 @@ graph:
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
 
+  - node_name: topk_baserate3
+    inputs: baseline3.baserate
+    outputs: [metrics_base3, base_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base3.png
+
+  - node_name: topk_commonsense3
+    inputs: baseline3.commonsense
+    outputs: [metrics_commonsense3, commonsense_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
+
   - node_name: select3
     inputs: [feature_eng_train3.df, feature_eng_val3.df]
     outputs: [fil_train, fil_val]
@@ -191,6 +248,23 @@ graph:
     inputs: split4.val
     outputs: [baserate, commonsense]
     operation: evaluate.baseline
+
+  - node_name: topk_baserate4
+    inputs: baseline4.baserate
+    outputs: [metrics_base4, base_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base4.png
+
+  - node_name: topk_commonsense4
+    inputs: baseline4.commonsense
+    outputs: [metrics_commonsense4, commonsense_preds]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense4.png
+
 
   - node_name: select4
     inputs: [feature_eng_train4.df, feature_eng_val4.df]
@@ -696,22 +770,6 @@ graph:
         target: label
         save_path: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/"
 
-  - node_name: topk_baserate3
-    inputs: baseline3.baserate
-    outputs: [metrics_base3, base_preds]
-    operation: evaluate.topk_metric
-    arguments:
-      target: label
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base3.png
-
-  - node_name: topk_commonsense3
-    inputs: baseline3.commonsense
-    outputs: [metrics_commonsense3, commonsense_preds]
-    operation: evaluate.topk_metric
-    arguments:
-      target: label
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense3.png
-
   # - node_name: load_model_1
   #   inputs: select_grid4.fil_train
   #   outputs: model
@@ -763,25 +821,3 @@ graph:
     arguments:
       target: label
       graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lr_model_2.png
-
-  - node_name: baseline4
-    inputs: split4.val
-    outputs: [baserate, commonsense]
-    operation: evaluate.baseline
-
-  - node_name: topk_baserate4
-    inputs: baseline4.baserate
-    outputs: [metrics_base4, base_preds]
-    operation: evaluate.topk_metric
-    arguments:
-      target: label
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base4.png
-
-  - node_name: topk_commonsense4
-    inputs: baseline4.commonsense
-    outputs: [metrics_commonsense4, commonsense_preds]
-    operation: evaluate.topk_metric
-    arguments:
-      target: label
-      graph_loc: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense4.png
-

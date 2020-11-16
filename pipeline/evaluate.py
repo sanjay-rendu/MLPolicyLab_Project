@@ -259,7 +259,7 @@ class topk_metric_grid(BaseOperator):
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
 
-    def run(self, target, save_path):
+    def run(self, target):
 
         #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
         idx_list = ['2011', '2013', '2015', '2017']

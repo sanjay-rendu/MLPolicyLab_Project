@@ -154,12 +154,12 @@ class CustomPreprocess(BaseOperator):
                                                  Pipeline([("num_sel",
                                                             ColumnExtractor(numeric_cols)),
                                                            ("num_impute",
-                                                            DFMissingNum(replace='median'))])),
+                                                            DFMissingNum(replace=numeric_impute))])),
                                                 ("categorical",
                                                  Pipeline([("cat_sel",
                                                             ColumnExtractor(categorical_cols)),
                                                            ("str_impute",
-                                                            DFMissingStr(replace='most_frequent')),
+                                                            DFMissingStr(replace=categorical_impute)),
                                                            ("one_hot",
                                                             DFOneHot())]))]))])
 

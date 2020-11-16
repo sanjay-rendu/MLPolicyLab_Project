@@ -121,12 +121,12 @@ class dummy_folder(BaseOperator):
 
     @property
     def inputs(self):
-        return [ReadDaggitTask_Folderpath(x).read_loc() for x in self.node.inputs]
+        return [os.path.dirname(ReadDaggitTask_Folderpath(x).read_loc()) for x in self.node.inputs]
 
     @property
     def outputs(self):
         return {
-            "models_dir": ReadDaggitTask_Folderpath(self.node.outputs[0]).read_loc()
+            "models_dir": os.path.dirname(ReadDaggitTask_Folderpath(self.node.outputs[0]).read_loc())
         }
 
     def run(self):

@@ -108,4 +108,4 @@ class model_grid(BaseOperator):
             params['model'] = clf
             list_of_models.append(params)
 
-        self.outputs["num_models"].write(list_of_models)
+        self.outputs["models"].write(list_of_models)

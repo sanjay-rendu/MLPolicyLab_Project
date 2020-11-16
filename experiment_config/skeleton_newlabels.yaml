@@ -407,9 +407,9 @@ graph:
 ## Results ##
 
   - node_name: metric_grid
-    inputs: [preprocess1.preprocessed_test, preprocess2.preprocessed_tests,
-             preprocess3.preprocessed_test, preprocess4.preprocessed_test,saved_models1,
-             saved_models2, saved_models3, saved_models4]
+    inputs: [preprocess1.preprocessed_test, preprocess2.preprocessed_test,
+             preprocess3.preprocessed_test, preprocess4.preprocessed_test,
+             saved_models1, saved_models2, saved_models3, saved_models4]
     outputs: result_grid
     operation: evaluate.topk_metric_grid
     arguments:

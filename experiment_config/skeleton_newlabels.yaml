@@ -18,11 +18,6 @@ outputs:
   metrics_base4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics4.txt"
   metrics_commonsense4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics4.txt"
 
-  saved_models1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models1/"
-  saved_models2: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models2/"
-  saved_models3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models3/"
-  saved_models4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models4/"
-
 graph:
   - node_name: fetch_labeled_data
     inputs: sql_loc_bill
@@ -108,7 +103,7 @@ graph:
 
   - node_name: lr_grid1
     inputs: preprocess1.preprocessed_train
-    outputs: saved_models1
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
@@ -119,13 +114,19 @@ graph:
 
   - node_name: dt_grid1
     inputs: preprocess1.preprocessed_train
-    outputs: saved_models1
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [5, 10, 20],
                    'min_samples_split': [2, 4, 8]}
+
+  - node_name: models1
+    inputs: [lr_grid1.models, dt_grid1.models]
+    output: dir
+    operation: model.dummy_folder
+
 
 ## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
   - node_name: split2
@@ -200,7 +201,7 @@ graph:
 
   - node_name: lr_grid2
     inputs: preprocess2.preprocessed_train
-    outputs: saved_models2
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
@@ -211,13 +212,18 @@ graph:
 
   - node_name: dt_grid2
     inputs: preprocess2.preprocessed_train
-    outputs: saved_models2
+    outputs: models2
     operation: model.model_grid
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [5, 10, 20],
                    'min_samples_split': [2, 4, 8]}
+
+  - node_name: models2
+    inputs: [lr_grid2.models, dt_grid2.models]
+    output: dir
+    operation: model.dummy_folder
 
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
   - node_name: split3
@@ -292,7 +298,7 @@ graph:
 
   - node_name: lr_grid3
     inputs: preprocess3.preprocessed_train
-    outputs: saved_models3
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
@@ -303,13 +309,18 @@ graph:
 
   - node_name: dt_grid3
     inputs: preprocess3.preprocessed_train
-    outputs: saved_models3
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [5, 10, 20],
                    'min_samples_split': [2, 4, 8]}
+
+  - node_name: models3
+    inputs: [lr_grid3.models, dt_grid3.models]
+    output: dir
+    operation: model.dummy_folder
 
 ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
   - node_name: split4
@@ -385,7 +396,7 @@ graph:
 
   - node_name: lr_grid4
     inputs: preprocess4.preprocessed_train
-    outputs: saved_models4
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
@@ -396,7 +407,7 @@ graph:
 
   - node_name: dt_grid4
     inputs: preprocess4.preprocessed_train
-    outputs: saved_models4
+    outputs: models
     operation: model.model_grid
     arguments:
       target: label
@@ -404,12 +415,17 @@ graph:
                    'max_depth': [5, 10, 20],
                    'min_samples_split': [2, 4, 8]}
 
+  - node_name: models4
+    inputs: [lr_grid4.models, dt_grid4.models]
+    output: dir
+    operation: model.dummy_folder
+
 ## Results ##
 
   - node_name: metric_grid
     inputs: [preprocess1.preprocessed_test, preprocess2.preprocessed_test,
              preprocess3.preprocessed_test, preprocess4.preprocessed_test,
-             saved_models1, saved_models2, saved_models3, saved_models4]
+             models1.dir, models2.dir, models3.dir, models4.dir]
     outputs: result_grid
     operation: evaluate.topk_metric_grid
     arguments:

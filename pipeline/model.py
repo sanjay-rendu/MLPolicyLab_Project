@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier as RF
 import importlib
 from joblib import dump, load
+import shutil
 
 class logistic_regression_trainer(BaseOperator):
 
@@ -115,3 +116,23 @@ class model_grid(BaseOperator):
 
         save_file = model_dir + '{}.joblib'.format(func_name)
         dump(list_of_models, save_file)
+
+class dummy_folder(BaseOperator):
+
+    @property
+    def inputs(self):
+        return [ReadDaggitTask_Folderpath(x) for x in self.node.inputs]
+
+    @property
+    def outputs(self):
+        return {
+            "models_dir": ReadDaggitTask_Folderpath(self.node.outputs[0])
+        }
+
+    def run(self):
+        dest = self.outputs["models_dir"]
+        if not os.path.exists(dest):
+            os.mkdir(dest)
+
+        for src in self.inputs:
+            shutil.copytree(src, dest)

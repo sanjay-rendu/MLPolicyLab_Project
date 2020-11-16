@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier as RF
 import importlib
 from joblib import dump, load
-import shutil
+from distutils.dir_util import copy_tree
 
 class logistic_regression_trainer(BaseOperator):
 
@@ -135,4 +135,4 @@ class dummy_folder(BaseOperator):
             os.mkdir(dest)
 
         for src in self.inputs:
-            shutil.copytree(src, dest)
+            copy_tree(src, dest)

@@ -1,12 +1,12 @@
 import numpy as np
-from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj, File_Txt, File_IO
+from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj, File_Txt, ReadDaggitTask_Folderpath
 from daggit.core.base.factory import BaseOperator
-from sklearn.metrics import accuracy_score
 import pandas as pd
 import math
 from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
 from joblib import dump, load
+import os
 
 
 class baseline(BaseOperator):
@@ -195,7 +195,11 @@ class topk_metric_grid(BaseOperator):
             "data1": Pandas_Dataframe(self.node.inputs[0]),
             "data2": Pandas_Dataframe(self.node.inputs[1]),
             "data3": Pandas_Dataframe(self.node.inputs[2]),
-            "data4": Pandas_Dataframe(self.node.inputs[3])
+            "data4": Pandas_Dataframe(self.node.inputs[3]),
+            "models1": ReadDaggitTask_Folderpath(self.node.inputs[4]),
+            "models2": ReadDaggitTask_Folderpath(self.node.inputs[5]),
+            "models3": ReadDaggitTask_Folderpath(self.node.inputs[6]),
+            "models4": ReadDaggitTask_Folderpath(self.node.inputs[7])
         }
 
     @property
@@ -261,17 +265,23 @@ class topk_metric_grid(BaseOperator):
         idx_list = ['2011', '2013', '2015', '2017']
         result = pd.DataFrame()
 
-        for split in [1,2,3,4]:
+        for split in [1, 2, 3, 4]:
             df = self.inputs["data"+str(split)].read()
-            
+            model_dir = self.inputs["models"+str(split)].read_loc()
+
+            directory = os.fsencode(model_dir)
+
+            models = []
+            for file in os.listdir(directory):
+                filename = os.fsdecode(file)
+                if filename.endswith(".joblib") or filename.endswith(".py"):
+                    models += load(os.path.join(directory, filename))
+
             features = list(set(list(df.columns)) - {target})
             X = df.as_matrix(columns=features)
 
             precisions = []
-            for i in range(50):
-                save_file = save_path + 'model_split_{:d}_{:d}.joblib'.format(split, i)
-                clf = load(save_file)
-
+            for clf in models:
                 y_prob = clf.predict_proba(X)[:, 1]
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
@@ -305,7 +315,7 @@ class topk_metric_grid(BaseOperator):
         ax.set_xlabel('Evaluation start year')
         ax.set_ylabel('Precision@30 percent')
 
-        plt.savefig('model_grid.png')
+        plt.savefig('model_grid.png') # change to variable
 
         self.outputs['result'].write(result)
 

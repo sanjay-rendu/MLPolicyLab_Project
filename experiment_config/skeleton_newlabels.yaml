@@ -19,6 +19,9 @@ outputs:
   metrics_commonsense4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics4.txt"
 
   saved_models1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models1/"
+  saved_models2: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models2/"
+  saved_models3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models3/"
+  saved_models4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/models4/"
 
 graph:
   - node_name: fetch_labeled_data
@@ -195,6 +198,27 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
+  - node_name: lr_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: saved_models2
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+
+  - node_name: dt_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: saved_models2
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [5, 10, 20],
+                   'min_samples_split': [2, 4, 8]}
+
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
   - node_name: split3
     inputs: monthly_snapshots.monthly_bill_data
@@ -266,7 +290,28 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
-  ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
+  - node_name: lr_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: saved_models3
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+
+  - node_name: dt_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: saved_models3
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [5, 10, 20],
+                   'min_samples_split': [2, 4, 8]}
+
+## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
   - node_name: split4
     inputs: monthly_snapshots.monthly_bill_data
     outputs: [train, val]
@@ -338,5 +383,34 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
-  ## grid search nodes -- move under appropriate split seections
+  - node_name: lr_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: saved_models4
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
 
+  - node_name: dt_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: saved_models4
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [5, 10, 20],
+                   'min_samples_split': [2, 4, 8]}
+
+## Results ##
+
+  - node_name: metric_grid
+    inputs: [preprocess1.preprocessed_test, preprocess2.preprocessed_tests,
+             preprocess3.preprocessed_test, preprocess4.preprocessed_test,saved_models1,
+             saved_models2, saved_models3, saved_models4]
+    outputs: result_grid
+    operation: evaluate.topk_metric_grid
+    arguments:
+        target: label

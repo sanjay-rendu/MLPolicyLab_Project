@@ -1,4 +1,4 @@
-import numpy as np
+import os
 from daggit.core.io.io import Pandas_Dataframe, Pickle_Obj, ReadDaggitTask_Folderpath
 from daggit.core.base.factory import BaseOperator
 from sklearn.linear_model import LogisticRegression
@@ -108,5 +108,10 @@ class model_grid(BaseOperator):
             params['model'] = clf
             list_of_models.append(params)
 
-        save_file = self.outputs["models"].read_loc() + '{}.joblib'.format(func_name)
+        model_dir = self.outputs["models"].read_loc()
+
+        if not os.path.exists(model_dir):
+            os.mkdir(model_dir)
+
+        save_file = model_dir + '{}.joblib'.format(func_name)
         dump(list_of_models, save_file)

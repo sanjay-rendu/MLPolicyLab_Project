@@ -64,19 +64,24 @@ graph:
     arguments:
       prediction_date: '2016-01-01'
       validation_end_date: '2017-07-01'
+  
+  - node_name: bill_text3
+    inputs: [split3.train, split3.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
 
   - node_name: lda_model3
-    inputs: [split3.train, fetch_bill_text.bill_text]
+    inputs: [split3.train, bill_text3.train]
     outputs: [vectorizer, lda_model]
     operation: feature_eng.get_lda_model
 
   - node_name: feature_eng_train3
-    inputs: [split3.train, fetch_bill_text.bill_text, lda_model3.vectorizer, lda_model3.lda_model]
+    inputs: [split3.train, bill_text3.train, lda_model3.vectorizer, lda_model3.lda_model]
     outputs: [df]
     operation: feature_eng.topic_model
 
   - node_name: feature_eng_val3
-    inputs: [split3.val, fetch_bill_text.bill_text, lda_model3.vectorizer, lda_model3.lda_model]
+    inputs: [split3.val, bill_text3.val, lda_model3.vectorizer, lda_model3.lda_model]
     outputs: [df]
     operation: feature_eng.topic_model
 

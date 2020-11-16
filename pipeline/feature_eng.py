@@ -44,7 +44,7 @@ class get_lda_model(BaseOperator):
         
         tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=num_features, stop_words='english')
         tf = tf_vectorizer.fit_transform(bill_texts[train_mask]["doc"])
-        print(len(tf_vectorizer.vocabulary))
+        print(len(tf_vectorizer.vocabulary_))
         del bill_texts
         #del train_docs
 

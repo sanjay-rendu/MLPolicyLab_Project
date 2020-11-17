@@ -271,8 +271,9 @@ class topk_metric_grid(BaseOperator):
             model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
 
             directory = os.fsencode(model_dir)
+            features = list(set(list(df.columns)) - {target})
+            X = df.as_matrix(columns=features)
 
-            models = []
             for file in os.listdir(directory):
                 filename = str(os.fsdecode(file))
 
@@ -280,22 +281,13 @@ class topk_metric_grid(BaseOperator):
                     with open(os.path.join(str(model_dir), filename), 'rb') as handle:
                         model_list = pickle.load(handle)
 
-                    models += model_list
-
-            features = list(set(list(df.columns)) - {target})
-            X = df.as_matrix(columns=features)
-
-            precisions = []
-            for clf in models:
-                y_prob = clf['model'].predict_proba(X)[:, 1]
+                y_prob = model_list['model'].predict_proba(X)[:, 1]
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
-                precisions.append(temp)
-                result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(clf['model']), 'precision': temp},
+                result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(model_list['model']), 'precision': temp},
                 ignore_index = True)
-                print(filename[:-4])
         
             score = self.baserate(df)
             score1 = self.common_sense(df)
@@ -304,19 +296,17 @@ class topk_metric_grid(BaseOperator):
             common_sense = pd.DataFrame(list(zip(list(df.label.values), score1)), columns=['label', 'score'])
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
-            precisions.append(temp)
             result = result.append({'split': idx_list[split-1], 'model': 'baseline', 'config': '','precision': temp},
                 ignore_index = True)
+
             temp, df_preds = self.topk(common_sense, k=0.3, metric='precision')
-            precisions.append(temp)
             result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': '', 'precision': temp},
                 ignore_index = True)
 
         fig, ax = plt.subplots(1, figsize=(12, 5))
         sns.lineplot(x='split', y='precision', data=result,
-                     hue='model', estimator=None,
-                     ax=ax
-                     )
+                     hue='model', units=range(result.shape[0]), estimator=None,
+                     ax=ax)
         ax.set_title('Precision@30% Over Time')
         plt.savefig(save_loc)
 

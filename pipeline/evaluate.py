@@ -293,7 +293,7 @@ class topk_metric_grid(BaseOperator):
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                 precisions.append(temp)
-                result = result.append({'split' = split, 'model' = filename[:-4], 'config' = str(clf), 'precision' = temp},
+                result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(clf), 'precision': temp},
                 ignore_index = True)
         
             score = self.baserate(df)
@@ -304,11 +304,11 @@ class topk_metric_grid(BaseOperator):
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
             precisions.append(temp)
-            result = result.append({'split' = split, 'model' = 'baseline', 'config' = '','precision' = temp},
+            result = result.append({'split': idx_list[split-1], 'model': 'baseline', 'config': '','precision': temp},
                 ignore_index = True)
             temp, df_preds = self.topk(common_sense, k=0.3, metric='precision')
             precisions.append(temp)
-            result = result.append({'split' = split, 'model' = 'commonsense', 'config' = '', 'precision' = temp},
+            result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': '', 'precision': temp},
                 ignore_index = True)
 
         # result[idx_list[split-1]] = precisions

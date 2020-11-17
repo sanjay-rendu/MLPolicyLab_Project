@@ -260,7 +260,7 @@ class topk_metric_grid(BaseOperator):
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
 
-    def run(self, target):
+    def run(self, target, save_loc):
 
         #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
         idx_list = ['2011', '2013', '2015', '2017']
@@ -317,24 +317,8 @@ class topk_metric_grid(BaseOperator):
                      hue='model', units='model', estimator=None,
                      ax=ax
                      )
-        ax.set_title('Precision@30 percent Over Time')
-        ax.set_ylim((0, 1))
-
-        # result[idx_list[split-1]] = precisions
-        # result = result.T
-        #
-        # styles = ['b-']*14
-        # styles += ['r-']*36
-        # #styles += ['m-']*10
-        # styles += ['k--'] + ['k:']
-        # fig, ax = plt.subplots(figsize=(12,6))
-        # for col, style in zip(result.columns, styles):
-        #     result[col].plot(style=style, ax=ax)
-        # ax.grid(True)
-        # ax.set_xlabel('Evaluation start year')
-        # ax.set_ylabel('Precision@30 percent')
-        #
-        plt.savefig('model_grid.png') # change to variable
+        ax.set_title('Precision@30% Over Time')
+        plt.savefig(save_loc)
 
         self.outputs['result'].write(result)
 

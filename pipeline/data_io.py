@@ -2,7 +2,7 @@ from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
 import io
 from airflow.hooks.postgres_hook import PostgresHook
-
+from contextlib import closing
 
 class fetch_sql(BaseOperator):
 
@@ -45,7 +45,12 @@ class load_table(BaseOperator):
         df.to_csv(output, sep='\t', header=False, index=False)
 
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
-        pg_hook.bulk_dump(table=table, tmp_file=output)
+        with closing(pg_hook.get_conn()) as conn:
+            with closing(conn.cursor()) as cur:
+                cur.copy_expert("COPY {table} TO STDOUT".format(table=table), output)
+                output.truncate(output.tell())
+                conn.commit()
+
 
 class textSplit(BaseOperator):
 

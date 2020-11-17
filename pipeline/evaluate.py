@@ -397,7 +397,7 @@ class top_prk(BaseOperator):
 
     def run(self, target):
         df = self.inputs["data"].read()
-        models = self.inputs["model"].read()
+        models = self.inputs["models"].read()
 
         features = list(set(list(df.columns)) - {target})
 

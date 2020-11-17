@@ -1,6 +1,6 @@
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
-
+import io
 from airflow.hooks.postgres_hook import PostgresHook
 
 
@@ -27,6 +27,25 @@ class fetch_sql(BaseOperator):
 
         self.outputs["dataframe"].write(data_out)
 
+
+
+class load_table(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {"dataframe": Pandas_Dataframe(self.node.inputs[0])}
+
+    @property
+    def outputs(self):
+        return None
+
+    def run(self, table, conn_id='postgres_bills3'):
+        df = self.inputs['dataframe'].read()
+        output = io.StringIO()
+        df.to_csv(output, sep='\t', header=False, index=False)
+
+        pg_hook = PostgresHook(postgres_conn_id=conn_id)
+        pg_hook.bulk_dump(table=table, tmp_file=output)
 
 class textSplit(BaseOperator):
 

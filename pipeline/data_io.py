@@ -40,7 +40,7 @@ class load_table(BaseOperator):
 
     def run(self, table, schema, date=None, conn_id='postgres_bills3'):
         df = self.inputs['dataframe'].read()
-        df[date] = pd.to_datetime(df[date])
+        df[date] = pd.to_datetime(df[date], format="%Y-%m-%d")
 
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
         engine = pg_hook.get_sqlalchemy_engine()

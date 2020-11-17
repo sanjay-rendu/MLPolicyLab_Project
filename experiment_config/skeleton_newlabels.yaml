@@ -479,3 +479,18 @@ graph:
       table: precision_30
       schema: sketch
       date: split
+
+  - node_name: topk_top_models
+    inputs: [preprocess4.preprocessed_test, metric_grid.top_models]
+    outputs: prk_output
+    operation: evaluate.top_prk
+    arguments:
+      target: label
+
+  - node_name: prk_sql
+    inputs: topk_top_models.prk_output
+    outputs: None
+    operation: data_io.load_table
+    arguments:
+      table: top_models_prk
+      schema: sketch

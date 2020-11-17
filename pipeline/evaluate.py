@@ -7,8 +7,6 @@ from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
 import pickle
 import os
-import seaborn as sns
-
 
 class baseline(BaseOperator):
 
@@ -350,3 +348,68 @@ class choose_best_two(BaseOperator):
         self.outputs['model1'].write(model1)
         self.outputs['model2'].write(model2)
 
+
+class top_prk(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "data": Pandas_Dataframe(self.node.inputs[0]),
+            "models": Pickle_Obj(self.node.inputs[1])
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "prk_out": Pandas_Dataframe(self.node.outputs[0])
+        }
+
+    def topk(self, result, k=.3, colnames=None, metric='precision'):
+        """ Returns the metric of the top k% of bills
+        args:
+            result: pandas.dataframe, csv with predicted labels, score, and true labels. Bill passed should be labeled with 1.
+            k: float, decimal of top scores to check
+                default: .3
+            colnames: dict, used to specify column name for each feature of interest.
+                format: {'label': **colname**, 'score': **colname**}
+                default: {'label': 'label', 'score': 'score'}
+            metric: str, either 'precision', 'recall', or 'both'
+                default: 'precision'
+        returns:
+            precision or recall score. if both, then returns a tuple of (precision, recall)
+        """
+        if colnames is None:
+            colnames = {'label': 'label', 'score': 'score'}
+        result = result.sort_values(by=[colnames['score']], ascending=False)
+        df_len = len(result.index)
+        preds = [1] * math.floor(df_len * k)
+        preds += [0] * (df_len - math.floor(df_len * k))
+        labels = result[colnames['label']].tolist()
+
+        result['preds'] = preds
+
+        if metric == 'precision':
+            return precision_score(labels, preds), result
+        elif metric == 'recall':
+            return recall_score(labels, preds), result
+        else:
+            return (precision_score(labels, preds), recall_score(labels, preds)), result
+
+    def run(self, target):
+        df = self.inputs["data"].read()
+        models = self.inputs["model"].read()
+
+        features = list(set(list(df.columns)) - {target})
+
+        X = df.as_matrix(columns=features)
+
+        result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
+        for model in models:
+            y_prob = model.predict_proba(X)[:, 1]
+
+            for k in range(1, 101):
+                temp, df_preds = self.topk(y_prob, k=k / 100, metric='both')
+                result = result.append({'model': 'commonsense', 'k': k,
+                                        'precision': temp[0], 'recall':temp[1]}, ignore_index=True)
+
+        self.outputs["prk_out"].write(result)

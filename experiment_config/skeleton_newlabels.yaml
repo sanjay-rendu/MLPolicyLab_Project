@@ -465,11 +465,11 @@ graph:
     inputs: [preprocess1.preprocessed_test, preprocess2.preprocessed_test,
              preprocess3.preprocessed_test, preprocess4.preprocessed_test,
              models1.dir, models2.dir, models3.dir, models4.dir]
-    outputs: result_grid
+    outputs: [result_grid, top_models]
     operation: evaluate.topk_metric_grid
     arguments:
         target: label
-        save_loc: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_grid.png"
+        top_n: 2
 
   - node_name: result_sql
     inputs: metric_grid.result_grid

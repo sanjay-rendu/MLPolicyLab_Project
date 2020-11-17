@@ -206,7 +206,8 @@ class topk_metric_grid(BaseOperator):
     @property
     def outputs(self):
         return {
-            "result": Pandas_Dataframe(self.node.outputs[0])
+            "result": Pandas_Dataframe(self.node.outputs[0]),
+            "top_models": Pickle_Obj(self.node.outputs[1])
         }
 
     def baserate(self, test):
@@ -260,12 +261,14 @@ class topk_metric_grid(BaseOperator):
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
 
-    def run(self, target, save_loc):
+    def run(self, target, top_n=2):
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
         #idx_list = ['2011', '2013', '2015', '2017']
         result = pd.DataFrame(columns = ['split', 'model', 'config', 'precision'])
 
+        precisions = []
+        models = []
         for split in [1, 2, 3, 4]:
             df = self.inputs["data"+str(split)].read()
             model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
@@ -287,8 +290,10 @@ class topk_metric_grid(BaseOperator):
                     res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                     temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
-                    result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(clf['model']), 'precision': temp},
-                    ignore_index = True)
+                    result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
+                                            'config': str(clf['model']), 'precision': temp}, ignore_index = True)
+                    precisions.append(temp)
+                    models.append(clf['model'])
         
             score = self.baserate(df)
             score1 = self.common_sense(df)
@@ -301,8 +306,10 @@ class topk_metric_grid(BaseOperator):
                 ignore_index = True)
 
             temp, df_preds = self.topk(common_sense, k=0.3, metric='precision')
-            result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': 'NA', 'precision': temp},
-                ignore_index = True)
+            result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': 'NA',
+                                    'precision': temp}, ignore_index = True)
+
+            top_models = [x for x in sorted(zip(precisions, models), reverse=True)[:3]][top_n]
 
         # fig, ax = plt.subplots(1, figsize=(12, 5)) ## Graph is not working
         # sns.lineplot(x='split', y='precision', data=result,
@@ -312,7 +319,7 @@ class topk_metric_grid(BaseOperator):
         # plt.savefig(save_loc)
 
         self.outputs['result'].write(result)
-
+        self.outputs['top_models'].write(top_models)
 
 
 class choose_best_two(BaseOperator):

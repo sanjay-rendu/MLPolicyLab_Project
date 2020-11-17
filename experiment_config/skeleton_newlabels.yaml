@@ -133,7 +133,7 @@ graph:
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models1
-    inputs: [lr_grid1.models, dt_grid1.models, svm_grid1.models]
+    inputs: [lr_grid1.models, dt_grid1.models]
     outputs: dir
     operation: model.dummy_folder
 
@@ -240,7 +240,7 @@ graph:
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models2
-    inputs: [lr_grid2.models, dt_grid2.models, svm_grid2.models]
+    inputs: [lr_grid2.models, dt_grid2.models]
     outputs: dir
     operation: model.dummy_folder
 
@@ -347,7 +347,7 @@ graph:
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models3
-    inputs: [lr_grid3.models, dt_grid3.models, svm_grid3.models]
+    inputs: [lr_grid3.models, dt_grid3.models]
     outputs: dir
     operation: model.dummy_folder
 
@@ -455,7 +455,7 @@ graph:
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models4
-    inputs: [lr_grid4.models, dt_grid4.models, svm_grid4.models]
+    inputs: [lr_grid4.models, dt_grid4.models]
     outputs: dir
     operation: model.dummy_folder
 

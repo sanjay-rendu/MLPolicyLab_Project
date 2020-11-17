@@ -226,9 +226,8 @@ graph:
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
-                   'max_depth': [3, 5, 10, 20, 50],
-                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8],
-                   'n_estimators': [100, 500, 1000, 5000, 10000]}
+                   'max_depth': [3, 5, 10, 20, 50, 100],
+                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
 
   - node_name: svm_grid2
     inputs: preprocess2.preprocessed_train

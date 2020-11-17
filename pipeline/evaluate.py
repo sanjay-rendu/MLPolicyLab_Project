@@ -427,6 +427,6 @@ class top_prk(BaseOperator):
                                         'precision': temp[0], 'recall':temp[1]}, ignore_index=True)
             i += 1
 
-        result = result.append(baseline)
-        result = result.append(commonsense)
+        result = result.append(baseline, ignore_index=True)
+        result = result.append(commonsense, ignore_index=True)
         self.outputs["prk_out"].write(result)

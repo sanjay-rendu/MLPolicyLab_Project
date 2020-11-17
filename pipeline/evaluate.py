@@ -5,7 +5,7 @@ import pandas as pd
 import math
 from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
-from joblib import dump, load
+import pickle
 import os
 
 
@@ -275,7 +275,11 @@ class topk_metric_grid(BaseOperator):
             for file in os.listdir(directory):
                 filename = os.fsdecode(file)
                 if filename.endswith(".joblib") or filename.endswith(".py"):
-                    models += load(os.path.join(directory, filename))
+
+                    with open(os.path.join(directory, filename), 'rb') as handle:
+                        model_list = pickle.load(handle)
+
+                    models += model_list
 
             features = list(set(list(df.columns)) - {target})
             X = df.as_matrix(columns=features)

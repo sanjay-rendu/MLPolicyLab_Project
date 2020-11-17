@@ -4,7 +4,7 @@ from daggit.core.base.factory import BaseOperator
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier as RF
 import importlib
-from joblib import dump, load
+import pickle
 from distutils.dir_util import copy_tree
 
 class logistic_regression_trainer(BaseOperator):
@@ -114,8 +114,9 @@ class model_grid(BaseOperator):
         if not os.path.exists(model_dir):
             os.mkdir(model_dir)
 
-        save_file = model_dir + '{}.joblib'.format(func_name)
-        dump(list_of_models, save_file)
+        save_file = model_dir + '{}.pkl'.format(func_name)
+        with open(save_file, 'wb') as handle:
+            pickle.dump(list_of_models, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 class dummy_folder(BaseOperator):
 

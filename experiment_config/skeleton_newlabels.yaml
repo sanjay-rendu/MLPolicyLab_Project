@@ -132,6 +132,17 @@ graph:
                    'kernel': ['linear', 'rbf', 'poly'],
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
+  - node_name: rf_grid1
+    inputs: preprocess1.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [None, 5, 10, 20, 100]}
+
   - node_name: models1
     inputs: [lr_grid1.models, dt_grid1.models]
     outputs: dir
@@ -238,6 +249,17 @@ graph:
       model_spec: {'model_name': 'sklearn.svm.SVC',
                    'kernel': ['linear', 'rbf', 'poly'],
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: rf_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [None, 5, 10, 20, 100]}
 
   - node_name: models2
     inputs: [lr_grid2.models, dt_grid2.models]
@@ -346,6 +368,17 @@ graph:
                    'kernel': ['linear', 'rbf', 'poly'],
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
+  - node_name: rf_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [None, 5, 10, 20, 100]}
+
   - node_name: models3
     inputs: [lr_grid3.models, dt_grid3.models]
     outputs: dir
@@ -453,6 +486,17 @@ graph:
       model_spec: {'model_name': 'sklearn.svm.SVC',
                    'kernel': ['linear', 'rbf', 'poly'],
                    'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: rf_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [None, 5, 10, 20, 100]}
 
   - node_name: models4
     inputs: [lr_grid4.models, dt_grid4.models]

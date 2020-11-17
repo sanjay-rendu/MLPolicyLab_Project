@@ -404,13 +404,15 @@ class top_prk(BaseOperator):
         X = df.as_matrix(columns=features)
 
         result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
+        i = 1
         for model in models:
             y_prob = model.predict_proba(X)[:, 1]
             output = pd.DataFrame(list(zip(list(df[target].values), y_prob)), columns=['label', 'score'])
 
             for k in range(1, 101):
                 temp, df_preds = self.topk(output, k=k / 100, metric='both')
-                result = result.append({'model': str(model), 'k': k,
+                result = result.append({'model_rank': i, 'model': str(model), 'k': k,
                                         'precision': temp[0], 'recall':temp[1]}, ignore_index=True)
+                i += 1
 
         self.outputs["prk_out"].write(result)

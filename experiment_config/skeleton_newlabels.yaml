@@ -67,18 +67,18 @@ graph:
   - node_name: topk_baserate1
     inputs: baseline1.baserate
     outputs: [metrics_base1, base_preds, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: baseline
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
 
   - node_name: topk_commonsense1
     inputs: baseline1.commonsense
     outputs: [metrics_commonsense1, commonsense_preds, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: commonsense
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
 
   - node_name: select1
     inputs: [feature_eng_train1.df, feature_eng_val1.df]
@@ -175,18 +175,18 @@ graph:
   - node_name: topk_baserate2
     inputs: baseline2.baserate
     outputs: [metrics_base2, base_preds, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: baseline
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
 
   - node_name: topk_commonsense2
     inputs: baseline2.commonsense
     outputs: [metrics_commonsense2, commonsense_preds, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: commonsense
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
 
   - node_name: select2
     inputs: [feature_eng_train2.df, feature_eng_val2.df]
@@ -281,18 +281,18 @@ graph:
   - node_name: topk_baserate3
     inputs: baseline3.baserate
     outputs: [metrics_base3, base_preds, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: baseline
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
 
   - node_name: topk_commonsense3
     inputs: baseline3.commonsense
     outputs: [metrics_commonsense3, commonsense_preds, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: commonsense
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
 
   - node_name: select3
     inputs: [feature_eng_train3.df, feature_eng_val3.df]
@@ -388,10 +388,10 @@ graph:
   - node_name: topk_baserate4
     inputs: baseline4.baserate
     outputs: [metrics_base4, base_preds, result_df, result_df]
-      operation: evaluate.topk_metric
-      arguments:
-        target: label
-        graph_name: baseline
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
 
   - node_name: topk_commonsense4
     inputs: baseline4.commonsense

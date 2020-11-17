@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd, numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation as LDA
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
@@ -96,21 +96,69 @@ class doc2vec(BaseOperator):
     
     @property
     def inputs(self):
-        return {"bill_texts": Pandas_Dataframe(self.node.inputs[0])}
+        return {"train": Pandas_Dataframe(self.node.inputs[0]),
+                "val": Pandas_Dataframe(self.node.inputs[1]),
+                "train_text": Pandas_Dataframe(self.node.inputs[2]),
+                "val_text": Pandas_Dataframe(self.node.inputs[3])}
 
     @property
     def outputs(self):
-        return {"doc2vec_model": Pickle_Obj(self.node.outputs[0])}
+        return {"doc2vec_model": Pickle_Obj(self.node.outputs[0]),
+                "train": Pandas_Dataframe(self.node.outputs[1]),
+                "val": Pandas_Dataframe(self.node.outputs[2])}
 
-    def run(self, col_names = {"bill_id": "bill_id", "doc": "doc"}, num_features = 1000, num_topics = 10):
+    def run(self, col_names = {"bill_id": "bill_id", "doc": "doc"}, vector_size = 10, window = 2, alpha=0.7):
+        """ Module for running Doc2Vec feature extraction.
+        Params:
+            vector_size: int, default 10
+                Specifies the size of the vector produced for each document
+            window: int, default 2
+                Maximum distance between the current and predicted word within a sentence
+            alpha: float, default 0.7
+                Learning rate
+        """
 
-        bill_texts = self.inputs["bill_texts"].read()
+        bill_texts = self.inputs["train_text"].read()
 
         train_docs = bill_texts[col_names["doc"]].values.astype('U')
+        bill_texts = bill_texts.drop("doc", axis=1)
         documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(train_docs)]
-        model = Doc2Vec(documents, vector_size=20, window=2, min_count=1, workers=4)
+        model = Doc2Vec(documents, vector_size=vector_size, alpha=alpha, window=window,
+                        min_count=1, workers=4, dm=0, dbow_words=1, seed=17)
 
         self.outputs["doc2vec_model"].write(model)
+
+        train_docs = [model.infer_vector(x) for x in train_docs]
+        train_docs = np.concatenate(train_docs, axis=0)
+        train_docs = pd.DataFrame(train_docs, columns = ["doc2vec{}".format(i) for i in range(vector_size)],
+                                  index = bill_texts.index)
+        bill_texts = pd.concat([bill_texts, train_docs], axis=1, sort=False)
+        train = self.inputs["train"].read()
+        train = train.merge(bill_texts, on="bill_id", how = "left")
+        self.outputs["train"].write(train)
+        del train
+        del bill_texts
+        del train_docs
+
+        bill_texts = self.inputs["val_text"].read()
+        val_docs = bill_texts["doc"].values.astype('U')
+        bill_texts = bill_texts.drop("doc", axis=1)
+        val_docs = [model.infer_vector(x) for x in val_docs]
+        val_docs = np.concatenate(val_docs, axis=0)
+        val_docs = pd.DataFrame(val_docs, columns = ["doc2vec{}".format(i) for i in range(vector_size)],
+                                index = bill_texts.index)
+        bill_texts = pd.concat([bill_texts, val_docs], axis=1, sort=False)
+        val = self.inputs["val"].read()
+        val = val.merge(bill_texts, on="bill_id", how="left")
+        self.outputs["val"].write(val)
+        # del train_docs
+        # val_docs = self.inputs["val_text"].read()["doc"].values.astype("U")
+        # val_features = [model.docvecs.infer_vector(x) for x in val_docs]
+        # del val_docs
+        # train = self.inputs["train"].read()
+        # val = self.inputs["val"].read()
+
+
 
 
 class CustomPreprocess(BaseOperator):

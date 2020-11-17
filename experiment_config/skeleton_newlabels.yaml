@@ -476,4 +476,5 @@ graph:
     outputs: None
     operation: data_io.load_table
     arguments:
-      table: 'sketch.precision_30'
+      table: precision_30
+      schema: sketch

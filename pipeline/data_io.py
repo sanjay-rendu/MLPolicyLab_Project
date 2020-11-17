@@ -39,18 +39,12 @@ class load_table(BaseOperator):
     def outputs(self):
         return None
 
-    def run(self, table, conn_id='postgres_bills3'):
+    def run(self, table, schema, conn_id='postgres_bills3'):
         df = self.inputs['dataframe'].read()
-        output = io.StringIO()
-        df.to_csv(output, sep='\t', header=False, index=False)
 
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
-        with closing(pg_hook.get_conn()) as conn:
-            with closing(conn.cursor()) as cur:
-                output.seek(0)
-                contents = output.getvalue()
-                cur.copy_from(output, table, null="")  # null values become ''
-                conn.commit()
+        engine = pg_hook.get_sqlalchemy_engine()
+        df.to_sql(table, con=engine, schema=schema, if_exists='replace')
 
 
 class textSplit(BaseOperator):

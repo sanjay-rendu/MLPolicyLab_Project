@@ -478,3 +478,4 @@ graph:
     arguments:
       table: precision_30
       schema: sketch
+      date: split

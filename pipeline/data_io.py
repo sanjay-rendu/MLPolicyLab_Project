@@ -1,8 +1,7 @@
 from daggit.core.io.io import Pandas_Dataframe
 from daggit.core.base.factory import BaseOperator
-import io
+import pandas as pd
 from airflow.hooks.postgres_hook import PostgresHook
-from contextlib import closing
 
 class fetch_sql(BaseOperator):
 
@@ -39,8 +38,9 @@ class load_table(BaseOperator):
     def outputs(self):
         return None
 
-    def run(self, table, schema, conn_id='postgres_bills3'):
+    def run(self, table, schema, date=None, conn_id='postgres_bills3'):
         df = self.inputs['dataframe'].read()
+        df[date] = pd.to_datetime(df[date])
 
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
         engine = pg_hook.get_sqlalchemy_engine()

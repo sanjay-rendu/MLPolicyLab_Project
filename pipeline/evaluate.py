@@ -262,8 +262,8 @@ class topk_metric_grid(BaseOperator):
 
     def run(self, target, save_loc):
 
-        #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
-        idx_list = ['2011', '2013', '2015', '2017']
+        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+        #idx_list = ['2011', '2013', '2015', '2017']
         result = pd.DataFrame(columns = ['split', 'model', 'config', 'precision'])
 
         for split in [1, 2, 3, 4]:

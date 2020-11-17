@@ -7,6 +7,7 @@ from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
 import pickle
 import os
+import seaborn as sns
 
 
 class baseline(BaseOperator):
@@ -311,6 +312,14 @@ class topk_metric_grid(BaseOperator):
             result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': '', 'precision': temp},
                 ignore_index = True)
 
+        fig, ax = plt.subplots(1, figsize=(12, 5))
+        sns.lineplot(x='split', y='precision', data=result,
+                     hue='model', units='model', estimator=None,
+                     ax=ax
+                     )
+        ax.set_title('Precision@30 percent Over Time')
+        ax.set_ylim((0, 1))
+
         # result[idx_list[split-1]] = precisions
         # result = result.T
         #
@@ -325,9 +334,10 @@ class topk_metric_grid(BaseOperator):
         # ax.set_xlabel('Evaluation start year')
         # ax.set_ylabel('Precision@30 percent')
         #
-        # plt.savefig('model_grid.png') # change to variable
+        plt.savefig('model_grid.png') # change to variable
 
         self.outputs['result'].write(result)
+
 
 
 class choose_best_two(BaseOperator):

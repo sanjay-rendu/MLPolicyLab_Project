@@ -297,19 +297,19 @@ class topk_metric_grid(BaseOperator):
             common_sense = pd.DataFrame(list(zip(list(df.label.values), score1)), columns=['label', 'score'])
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
-            result = result.append({'split': idx_list[split-1], 'model': 'baseline', 'config': '','precision': temp},
+            result = result.append({'split': idx_list[split-1], 'model': 'baseline', 'config': 'NA','precision': temp},
                 ignore_index = True)
 
             temp, df_preds = self.topk(common_sense, k=0.3, metric='precision')
-            result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': '', 'precision': temp},
+            result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': 'NA', 'precision': temp},
                 ignore_index = True)
 
-        fig, ax = plt.subplots(1, figsize=(12, 5))
-        sns.lineplot(x='split', y='precision', data=result,
-                     hue='model', units=range(result.shape[0]), estimator=None,
-                     ax=ax)
-        ax.set_title('Precision@30% Over Time')
-        plt.savefig(save_loc)
+        # fig, ax = plt.subplots(1, figsize=(12, 5)) ## Graph is not working
+        # sns.lineplot(x='split', y='precision', data=result,
+        #              hue='model', units=range(result.shape[0]), estimator=None,
+        #              ax=ax)
+        # ax.set_title('Precision@30% Over Time')
+        # plt.savefig(save_loc)
 
         self.outputs['result'].write(result)
 

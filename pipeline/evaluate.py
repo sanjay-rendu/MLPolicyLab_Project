@@ -286,7 +286,7 @@ class topk_metric_grid(BaseOperator):
 
             precisions = []
             for clf in models:
-                y_prob = clf.predict_proba(X)[:, 1]
+                y_prob = clf['model'].predict_proba(X)[:, 1]
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')

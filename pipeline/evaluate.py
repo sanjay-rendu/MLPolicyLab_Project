@@ -281,13 +281,14 @@ class topk_metric_grid(BaseOperator):
                     with open(os.path.join(str(model_dir), filename), 'rb') as handle:
                         model_list = pickle.load(handle)
 
-                y_prob = model_list['model'].predict_proba(X)[:, 1]
+                for clf in model_list:
+                    y_prob = clf['model'].predict_proba(X)[:, 1]
 
-                res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
-                temp, df_preds = self.topk(res, k=0.3, metric='precision')
+                    res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
+                    temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
-                result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(model_list['model']), 'precision': temp},
-                ignore_index = True)
+                    result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(clf['model']), 'precision': temp},
+                    ignore_index = True)
         
             score = self.baserate(df)
             score1 = self.common_sense(df)

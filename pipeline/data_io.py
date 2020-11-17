@@ -47,8 +47,9 @@ class load_table(BaseOperator):
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
         with closing(pg_hook.get_conn()) as conn:
             with closing(conn.cursor()) as cur:
-                cur.copy_expert("COPY {table} TO STDOUT".format(table=table), output)
-                output.truncate(output.tell())
+                output.seek(0)
+                contents = output.getvalue()
+                cur.copy_from(output, table, null="")  # null values become ''
                 conn.commit()
 
 

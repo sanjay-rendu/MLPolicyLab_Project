@@ -120,7 +120,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1, 2, 4, 8]}
+                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
 
   - node_name: svm_grid1
     inputs: preprocess1.preprocessed_train
@@ -130,7 +130,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
                    'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models1
     inputs: [lr_grid1.models, dt_grid1.models, svm_grid1.models]
@@ -217,7 +217,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1, 2, 4, 8]}
+                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
 
   - node_name: dt_grid2
     inputs: preprocess2.preprocessed_train
@@ -227,7 +227,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50],
-                   'min_samples_split': [0.1, 0.5, 1, 2, 4, 8],
+                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8],
                    'n_estimators': [100, 500, 1000, 5000, 10000]}
 
   - node_name: svm_grid2
@@ -238,7 +238,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
                    'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models2
     inputs: [lr_grid2.models, dt_grid2.models, svm_grid2.models]
@@ -335,7 +335,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1, 2, 4, 8]}
+                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
 
   - node_name: svm_grid3
     inputs: preprocess3.preprocessed_train
@@ -345,7 +345,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
                    'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models3
     inputs: [lr_grid3.models, dt_grid3.models, svm_grid3.models]
@@ -433,7 +433,7 @@ graph:
       model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
                    'max_iter': [200],
                    'penalty': ['l1','l2'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: dt_grid4
     inputs: preprocess4.preprocessed_train
@@ -443,7 +443,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1, 2, 4, 8]}
+                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
 
   - node_name: svm_grid4
     inputs: preprocess4.preprocessed_train
@@ -453,7 +453,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
                    'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
 
   - node_name: models4
     inputs: [lr_grid4.models, dt_grid4.models, svm_grid4.models]

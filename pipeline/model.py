@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier as RF
 import importlib
 import pickle
 from distutils.dir_util import copy_tree
+import itertools
 
 class logistic_regression_trainer(BaseOperator):
 
@@ -99,7 +100,7 @@ class model_grid(BaseOperator):
         func = getattr(mod, func_name)
         del model_spec['model_name']
 
-        params_list = [dict(zip(model_spec, t)) for t in zip(*model_spec.values())]
+        params_list = [dict(zip(model_spec, t)) for t in list(itertools.product(*model_spec.values()))]
 
         list_of_models = []
         for params in params_list:

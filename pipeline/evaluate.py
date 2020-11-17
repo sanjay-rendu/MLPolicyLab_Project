@@ -116,7 +116,8 @@ class topk_metric(BaseOperator):
     def outputs(self):
         return {
             "metrics": File_Txt(self.node.outputs[0]),
-            "topk_predictions": Pandas_Dataframe(self.node.outputs[1])
+            "topk_predictions": Pandas_Dataframe(self.node.outputs[1]),
+            "result_df": Pandas_Dataframe(self.node.outputs[2])
         }
 
     def topk(self, result, k=.3, colnames=None, metric='precision'):
@@ -150,7 +151,7 @@ class topk_metric(BaseOperator):
         else:
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
-    def plot_prk(self, precisions, recalls, graph_loc):
+    def plot_prk(self, precisions, recalls, graph_name):
 
         fig, ax = plt.subplots()
 
@@ -166,24 +167,31 @@ class topk_metric(BaseOperator):
         ax2.plot(x, recalls,color="blue")
         ax2.set_ylabel("Recall", color="blue")
         ax2.set_ylim(0, 1)
-        fig.savefig(graph_loc)
+        fig.savefig(os.path.join(os.path.dirname(self.inputs["predictions"].data_location),"{}.png".format(graph_name)))
 
-    def run(self, target, graph_loc):
+    def run(self, target, graph_name):
         result = self.inputs["predictions"].read()
         precision = []
         recall = []
+
+        result_df = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
         for k in range(1, 101):
             temp, df_preds = self.topk(result, k=k / 100, metric='both')
             precision.append(temp[0])
             recall.append(temp[1])
+            result_df = result_df.append({'model_rank': 0, 'model': graph_name, 'k': k,
+                                    'precision': temp[0], 'recall': temp[1]}, ignore_index=True)
 
-        self.plot_prk(precision, recall, graph_loc)
+        self.plot_prk(precision, recall, graph_name)
 
         results, df_preds = self.topk(result, k=.3, metric='both')
         precision_30, recall_30 = results
 
+
+
         self.outputs['metrics'].write("Precision @ 30%: {} \nRecall @ 30%: {}".format(precision_30, recall_30))
         self.outputs['topk_predictions'].write(df_preds)
+        self.outputs['result_df'].write(result_df)
 
 
 class topk_metric_grid(BaseOperator):

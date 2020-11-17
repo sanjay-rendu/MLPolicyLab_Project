@@ -413,6 +413,6 @@ class top_prk(BaseOperator):
                 temp, df_preds = self.topk(output, k=k / 100, metric='both')
                 result = result.append({'model_rank': i, 'model': str(model), 'k': k,
                                         'precision': temp[0], 'recall':temp[1]}, ignore_index=True)
-                i += 1
+            i += 1
 
         self.outputs["prk_out"].write(result)

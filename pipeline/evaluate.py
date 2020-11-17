@@ -273,10 +273,10 @@ class topk_metric_grid(BaseOperator):
 
             models = []
             for file in os.listdir(directory):
-                filename = os.fsdecode(file)
-                if filename.endswith(".joblib") or filename.endswith(".py"):
+                filename = str(os.fsdecode(file))
 
-                    with open(os.path.join(directory, filename), 'rb') as handle:
+                if filename.endswith(".pkl"):
+                    with open(os.path.join(str(model_dir), filename), 'rb') as handle:
                         model_list = pickle.load(handle)
 
                     models += model_list

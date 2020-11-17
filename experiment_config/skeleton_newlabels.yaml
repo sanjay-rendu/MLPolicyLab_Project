@@ -471,11 +471,3 @@ graph:
     arguments:
         target: label
         save_loc: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/model_grid.png"
-
-- node_name: choose_best_models
-    inputs: metric_grid.result_grid
-    outputs: [model1, model2]
-    operation: evaluate.choose_best_two
-    arguments:
-      split: 4
-      save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/

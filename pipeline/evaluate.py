@@ -309,7 +309,7 @@ class topk_metric_grid(BaseOperator):
             result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': 'NA',
                                     'precision': temp}, ignore_index = True)
 
-            top_models = [x for x in sorted(zip(precisions, models), reverse=True)[:3]][top_n]
+            top_models = [x for x in sorted(zip(precisions, models), key=lambda x: x[0], reverse=True)[:3]][:top_n]
 
         # fig, ax = plt.subplots(1, figsize=(12, 5)) ## Graph is not working
         # sns.lineplot(x='split', y='precision', data=result,

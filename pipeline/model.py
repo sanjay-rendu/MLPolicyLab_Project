@@ -114,7 +114,7 @@ class model_grid(BaseOperator):
         if not os.path.exists(model_dir):
             os.mkdir(model_dir)
 
-        save_file = model_dir + '{}.pkl'.format(func_name)
+        save_file = os.path.join(model_dir, '{}.pkl'.format(func_name))
         with open(save_file, 'wb') as handle:
             pickle.dump(list_of_models, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

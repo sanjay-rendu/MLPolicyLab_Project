@@ -263,7 +263,7 @@ class topk_metric_grid(BaseOperator):
 
         #idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
         idx_list = ['2011', '2013', '2015', '2017']
-        result = pd.DataFrame()
+        result = pd.DataFrame(columns = ['split', 'model', 'config', 'precision'])
 
         for split in [1, 2, 3, 4]:
             df = self.inputs["data"+str(split)].read()
@@ -287,11 +287,14 @@ class topk_metric_grid(BaseOperator):
             precisions = []
             for clf in models:
                 y_prob = clf['model'].predict_proba(X)[:, 1]
+                del clf['model']
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                 precisions.append(temp)
+                result = result.append({'split' = split, 'model' = filename[:-4], 'config' = str(clf), 'precision' = temp},
+                ignore_index = True)
         
             score = self.baserate(df)
             score1 = self.common_sense(df)
@@ -301,25 +304,28 @@ class topk_metric_grid(BaseOperator):
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
             precisions.append(temp)
+            result = result.append({'split' = split, 'model' = 'baseline', 'config' = '','precision' = temp},
+                ignore_index = True)
             temp, df_preds = self.topk(common_sense, k=0.3, metric='precision')
             precisions.append(temp)
+            result = result.append({'split' = split, 'model' = 'commonsense', 'config' = '', 'precision' = temp},
+                ignore_index = True)
 
-            result[idx_list[split-1]] = precisions
-
-        result = result.T
-
-        styles = ['b-']*14
-        styles += ['r-']*36
-        #styles += ['m-']*10
-        styles += ['k--'] + ['k:']
-        fig, ax = plt.subplots(figsize=(12,6))
-        for col, style in zip(result.columns, styles):
-            result[col].plot(style=style, ax=ax)
-        ax.grid(True)
-        ax.set_xlabel('Evaluation start year')
-        ax.set_ylabel('Precision@30 percent')
-
-        plt.savefig('model_grid.png') # change to variable
+        # result[idx_list[split-1]] = precisions
+        # result = result.T
+        #
+        # styles = ['b-']*14
+        # styles += ['r-']*36
+        # #styles += ['m-']*10
+        # styles += ['k--'] + ['k:']
+        # fig, ax = plt.subplots(figsize=(12,6))
+        # for col, style in zip(result.columns, styles):
+        #     result[col].plot(style=style, ax=ax)
+        # ax.grid(True)
+        # ax.set_xlabel('Evaluation start year')
+        # ax.set_ylabel('Precision@30 percent')
+        #
+        # plt.savefig('model_grid.png') # change to variable
 
         self.outputs['result'].write(result)
 

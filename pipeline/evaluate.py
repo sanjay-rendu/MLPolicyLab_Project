@@ -288,14 +288,14 @@ class topk_metric_grid(BaseOperator):
             precisions = []
             for clf in models:
                 y_prob = clf['model'].predict_proba(X)[:, 1]
-                del clf['model']
 
                 res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
                 temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                 precisions.append(temp)
-                result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(clf), 'precision': temp},
+                result = result.append({'split': idx_list[split-1], 'model': filename[:-4], 'config': str(clf['model']), 'precision': temp},
                 ignore_index = True)
+                print(filename[:-4])
         
             score = self.baserate(df)
             score1 = self.common_sense(df)
@@ -314,7 +314,7 @@ class topk_metric_grid(BaseOperator):
 
         fig, ax = plt.subplots(1, figsize=(12, 5))
         sns.lineplot(x='split', y='precision', data=result,
-                     hue='model', units='model', estimator=None,
+                     hue='model', estimator=None,
                      ax=ax
                      )
         ax.set_title('Precision@30% Over Time')

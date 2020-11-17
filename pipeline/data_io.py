@@ -44,7 +44,7 @@ class load_table(BaseOperator):
 
         pg_hook = PostgresHook(postgres_conn_id=conn_id)
         engine = pg_hook.get_sqlalchemy_engine()
-        df.to_sql(table, con=engine, schema=schema, if_exists='replace')
+        df.to_sql(table, con=engine, schema=schema, if_exists='replace', index=False)
 
 
 class textSplit(BaseOperator):

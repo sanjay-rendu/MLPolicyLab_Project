@@ -363,7 +363,9 @@ class top_prk(BaseOperator):
     def inputs(self):
         return {
             "data": Pandas_Dataframe(self.node.inputs[0]),
-            "models": Pickle_Obj(self.node.inputs[1])
+            "models": Pickle_Obj(self.node.inputs[1]),
+            "baseline_prk": Pandas_Dataframe(self.node.inputs[2]),
+            "commonsense_prk": Pandas_Dataframe(self.node.inputs[3])
         }
 
     @property
@@ -406,6 +408,8 @@ class top_prk(BaseOperator):
     def run(self, target):
         df = self.inputs["data"].read()
         models = self.inputs["models"].read()
+        baseline = self.inputs["baseline_prk"].read()
+        commonsense = self.inputs["commonsense_prk"].read()
 
         features = list(set(list(df.columns)) - {target})
 
@@ -423,4 +427,6 @@ class top_prk(BaseOperator):
                                         'precision': temp[0], 'recall':temp[1]}, ignore_index=True)
             i += 1
 
+        result = result.append(baseline)
+        result = result.append(commonsense)
         self.outputs["prk_out"].write(result)

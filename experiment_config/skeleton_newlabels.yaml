@@ -481,7 +481,7 @@ graph:
       date: split
 
   - node_name: topk_top_models
-    inputs: [preprocess4.preprocessed_test, metric_grid.top_models]
+    inputs: [preprocess4.preprocessed_test, metric_grid.top_models, topk_baserate4.result_df, topk_commonsense4.result_df]
     outputs: prk_output
     operation: evaluate.top_prk
     arguments:

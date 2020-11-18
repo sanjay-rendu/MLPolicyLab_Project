@@ -482,7 +482,7 @@ class top_prk(BaseOperator):
         result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
         i = 1
         for model in models:
-            model.set_params({'random_state': 123})
+            model = model.set_params(**{'random_state': 123}) # works only with sklearn models
             y_prob = model.predict_proba(X)[:, 1]
             output = pd.DataFrame(list(zip(list(df[target].values), y_prob)), columns=['label', 'score'])
             precisions = []

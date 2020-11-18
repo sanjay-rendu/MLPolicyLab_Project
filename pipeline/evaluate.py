@@ -298,7 +298,7 @@ class topk_metric_grid(BaseOperator):
 
                     result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
                                             'config': str(clf['model']), 'precision': temp}, ignore_index = True)
-                    if split == n_splits+1:
+                    if split == n_splits:
                         precisions.append(temp)
                         models.append(clf['model'])
         
@@ -496,6 +496,6 @@ class top_prk(BaseOperator):
             self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
             i += 1
 
-        result = result.append(baseline, ignore_index=True)
-        result = result.append(commonsense, ignore_index=True)
+        result = pd.concat([result, baseline, commonsense],ignore_index=True)
+
         self.outputs["prk_out"].write(result)

@@ -267,7 +267,7 @@ class topk_metric_grid(BaseOperator):
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
 
-    def run(self, target, top_n=2):
+    def run(self, target, n_splits=4, top_n=2):
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
         #idx_list = ['2011', '2013', '2015', '2017']
@@ -275,7 +275,7 @@ class topk_metric_grid(BaseOperator):
 
         precisions = []
         models = []
-        for split in [1, 2, 3, 4]:
+        for split in range(1, n_splits+1):
             df = self.inputs["data"+str(split)].read()
             model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
 
@@ -298,7 +298,7 @@ class topk_metric_grid(BaseOperator):
 
                     result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
                                             'config': str(clf['model']), 'precision': temp}, ignore_index = True)
-                    if split == 4:
+                    if split == n_splits+1:
                         precisions.append(temp)
                         models.append(clf['model'])
         
@@ -467,7 +467,7 @@ class top_prk(BaseOperator):
         ax2.plot(x, recalls,color="blue")
         ax2.set_ylabel("Recall", color="blue")
         ax2.set_ylim(0, 1)
-        fig.savefig(os.path.join(os.path.dirname(self.inputs["predictions"].data_location),"{}.png".format(graph_name)))
+        fig.savefig(os.path.join(os.path.dirname(self.inputs["data"].data_location),"{}.png".format(graph_name)))
 
     def run(self, target):
         df = self.inputs["data"].read()

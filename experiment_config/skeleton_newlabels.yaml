@@ -141,7 +141,7 @@ graph:
       model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
                    'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
                    'min_samples_split': [2, 4, 8],
-                   'max_depth': [None, 5, 10, 20, 100]}
+                   'max_depth': [5, 10, 20, 100]}
 
   - node_name: models1
     inputs: [lr_grid1.models, dt_grid1.models]
@@ -259,7 +259,7 @@ graph:
       model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
                    'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
                    'min_samples_split': [2, 4, 8],
-                   'max_depth': [None, 5, 10, 20, 100]}
+                   'max_depth': [5, 10, 20, 100]}
 
   - node_name: models2
     inputs: [lr_grid2.models, dt_grid2.models]
@@ -377,7 +377,7 @@ graph:
       model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
                    'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
                    'min_samples_split': [2, 4, 8],
-                   'max_depth': [None, 5, 10, 20, 100]}
+                   'max_depth': [5, 10, 20, 100]}
 
   - node_name: models3
     inputs: [lr_grid3.models, dt_grid3.models]
@@ -496,7 +496,7 @@ graph:
       model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
                    'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
                    'min_samples_split': [2, 4, 8],
-                   'max_depth': [None, 5, 10, 20, 100]}
+                   'max_depth': [5, 10, 20, 100]}
 
   - node_name: models4
     inputs: [lr_grid4.models, dt_grid4.models]

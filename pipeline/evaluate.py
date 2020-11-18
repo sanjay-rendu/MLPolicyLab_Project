@@ -298,8 +298,9 @@ class topk_metric_grid(BaseOperator):
 
                     result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
                                             'config': str(clf['model']), 'precision': temp}, ignore_index = True)
-                    precisions.append(temp)
-                    models.append(clf['model'])
+                    if split == 4:
+                        precisions.append(temp)
+                        models.append(clf['model'])
         
             score = self.baserate(df)
             score1 = self.common_sense(df)

@@ -95,7 +95,7 @@ graph:
     outputs: [preprocessed_train, preprocessed_test]
     operation: feature_eng.CustomPreprocess
     arguments:
-      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      drop_missing_perc: 0.9 # drop columns that have more than 90% missing
       target_variable: label
       ignore_variables: ['bill_id', 'present_date']
       numeric_impute: median
@@ -214,7 +214,7 @@ graph:
     outputs: [preprocessed_train, preprocessed_test]
     operation: feature_eng.CustomPreprocess
     arguments:
-      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      drop_missing_perc: 0.9 # drop columns that have more than 90% missing
       target_variable: label
       ignore_variables: ['bill_id', 'present_date']
       numeric_impute: median
@@ -331,7 +331,7 @@ graph:
     outputs: [preprocessed_train, preprocessed_test]
     operation: feature_eng.CustomPreprocess
     arguments:
-      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      drop_missing_perc: 0.9 # drop columns that have more than 90% missing
       target_variable: label
       ignore_variables: ['bill_id', 'present_date']
       numeric_impute: median
@@ -450,7 +450,7 @@ graph:
     outputs: [preprocessed_train, preprocessed_test]
     operation: feature_eng.CustomPreprocess
     arguments:
-      drop_missing_perc: 0.9 # drop columns that have more then 90% missing
+      drop_missing_perc: 0.9 # drop columns that have more than 90% missing
       target_variable: label
       ignore_variables: ['bill_id', 'present_date']
       numeric_impute: median

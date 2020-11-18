@@ -450,6 +450,24 @@ class top_prk(BaseOperator):
         else:
             return (precision_score(labels, preds), recall_score(labels, preds)), result
 
+    def plot_prk(self, precisions, recalls, graph_name):
+
+        fig, ax = plt.subplots()
+
+        assert len(precisions) == len(recalls)
+        x = np.linspace(0, 1, len(precisions))
+        ax.plot(x, precisions, color="red")
+        ax.set_xlabel('Percent of Total Bills')
+        ax.set_ylabel("Precision", color="red")
+        ax.set_title('PR-k of model')
+        ax.set_ylim(0, 1)
+
+        ax2 = ax.twinx()
+        ax2.plot(x, recalls,color="blue")
+        ax2.set_ylabel("Recall", color="blue")
+        ax2.set_ylim(0, 1)
+        fig.savefig(os.path.join(os.path.dirname(self.inputs["predictions"].data_location),"{}.png".format(graph_name)))
+
     def run(self, target):
         df = self.inputs["data"].read()
         models = self.inputs["models"].read()
@@ -465,11 +483,16 @@ class top_prk(BaseOperator):
         for model in models:
             y_prob = model.predict_proba(X)[:, 1]
             output = pd.DataFrame(list(zip(list(df[target].values), y_prob)), columns=['label', 'score'])
-
+            precisions = []
+            recalls = []
             for k in range(1, 101):
                 temp, df_preds = self.topk(output, k=k / 100, metric='both')
                 result = result.append({'model_rank': i, 'model': str(model), 'k': k,
                                         'precision': temp[0], 'recall':temp[1]}, ignore_index=True)
+                precisions.append(temp[0])
+                recalls.append(temp[1])
+
+            self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
             i += 1
 
         result = result.append(baseline, ignore_index=True)

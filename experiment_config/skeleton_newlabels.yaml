@@ -545,3 +545,18 @@ graph:
     arguments:
       table: top_models_prk
       schema: sketch
+  
+  - node_name: plot_best_prk
+    inputs: topk_top_models.prk_output
+    outputs: result_grid
+    operation: evaluate.plot_best_prk
+    arguments:
+        save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+
+## Feature Importance ##
+
+  - node_name: shap
+    inputs: []
+    outputs: results
+    operation: feature_importance.get_shap
+

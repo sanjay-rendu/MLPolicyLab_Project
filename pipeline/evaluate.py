@@ -328,6 +328,51 @@ class topk_metric_grid(BaseOperator):
         self.outputs['top_models'].write(top_models)
 
 
+
+
+class plot_grid_results(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "result": Pandas_Dataframe(self.node.inputs[0]),
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "result": Pandas_Dataframe(self.node.inputs[0])
+        }
+
+    def run(self, save_path):
+        result = self.inputs["result"].read()
+
+        idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
+
+        styles = ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
+        styles += ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
+        #styles += ['g-']*len(result['model'] == 'LogisticRegression')//4
+        styles += ['k--'] + ['k:']
+
+        y = np.zeros((len(result)//4, 4))
+        y[:,0] = result[result['split'] == '2011-07-01']['precision']
+        y[:,1] = result[result['split'] == '2013-07-01']['precision']
+        y[:,2] = result[result['split'] == '2015-07-01']['precision']
+        y[:,3] = result[result['split'] == '2017-07-01']['precision']
+
+
+        print(len(styles), y.shape)
+
+        fig, ax = plt.subplots(1, figsize=(12, 5))
+        for i, style in enumerate(styles):
+            ax.plot(idx_list, y[i,:], style)
+        ax.set_title('Precision@30% Over Time')
+        plt.savefig('model_grid.png')
+
+        self.outputs['result'].write(result)
+        
+
+
 class choose_best_two(BaseOperator):
 
     @property

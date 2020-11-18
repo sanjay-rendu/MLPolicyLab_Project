@@ -471,6 +471,13 @@ graph:
         target: label
         top_n: 2
 
+  - node_name: plot_grid_results
+    inputs: metric_grid.result_grid
+    outputs: result_grid
+    operation: evaluate.plot_grid_results
+    arguments:
+        save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+
   - node_name: result_sql
     inputs: metric_grid.result_grid
     outputs: None

@@ -104,6 +104,8 @@ class model_grid(BaseOperator):
 
         list_of_models = []
         for params in params_list:
+            params['class_weight'] = 'balanced'
+            params['random_state'] = 123
             clf = func()
             clf.set_params(**params)
             clf.fit(X, y)

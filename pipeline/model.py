@@ -25,10 +25,8 @@ class logistic_regression_trainer(BaseOperator):
     def run(self, target, max_iter):
         df = self.inputs["train"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         model = LogisticRegression(max_iter=max_iter)
         model.fit(X, y)
@@ -54,10 +52,8 @@ class rf_trainer(BaseOperator):
         """
         df = self.inputs["train"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         model = RF(**params)
         model.fit(X, y)
@@ -90,10 +86,8 @@ class model_grid(BaseOperator):
     def run(self, target, model_spec):
         df = self.inputs["train"].read()
         
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         mod_name, func_name = model_spec['model_name'].rsplit('.',1)
         mod = importlib.import_module(mod_name)

@@ -92,14 +92,12 @@ class predict_val(BaseOperator):
         df = self.inputs["data"].read()
         model = self.inputs["model"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         y_prob = model.predict_proba(X)[:, 1]
 
-        output = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
+        output = pd.DataFrame(list(zip(list(y),y_prob)), columns=['label', 'score'])
 
         self.outputs["prediction"].write(output)
 
@@ -279,8 +277,8 @@ class topk_metric_grid(BaseOperator):
             model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
 
             directory = os.fsencode(model_dir)
-            features = list(set(list(df.columns)) - {target})
-            X = df.as_matrix(columns=features)
+            y = df[target].to_numpy()
+            X = df.drop(target, axis=1).to_numpy()
 
             for file in sorted(os.listdir(directory)):
                 filename = str(os.fsdecode(file))
@@ -292,7 +290,7 @@ class topk_metric_grid(BaseOperator):
                     for clf in model_list:
                         y_prob = clf['model'].predict_proba(X)[:, 1]
 
-                        res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
+                        res = pd.DataFrame(list(zip(list(y),y_prob)), columns=['label', 'score'])
                         temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                         result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
@@ -304,8 +302,8 @@ class topk_metric_grid(BaseOperator):
             score = self.baserate(df)
             score1 = self.common_sense(df)
 
-            baserate = pd.DataFrame(list(zip(list(df.label.values), score)), columns=['label', 'score'])
-            common_sense = pd.DataFrame(list(zip(list(df.label.values), score1)), columns=['label', 'score'])
+            baserate = pd.DataFrame(list(zip(list(y), score)), columns=['label', 'score'])
+            common_sense = pd.DataFrame(list(zip(list(y), score1)), columns=['label', 'score'])
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
             result = result.append({'split': idx_list[split-1], 'model': 'baseline', 'config': 'NA','precision': temp},
@@ -351,15 +349,17 @@ class plot_grid_results(BaseOperator):
 
         #styles = ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
         #styles += ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
-        styles = ['b-'] * 3
+
+        #styles = ['b-'] * 3
         styles += ['k--'] + ['k:']
 
         y = np.zeros((len(result)//4, 4))
-        y2 = np.zeros((5, 4))
         y[:,0] = result[result['split'] == '2011-07-01']['precision']
         y[:,1] = result[result['split'] == '2013-07-01']['precision']
         y[:,2] = result[result['split'] == '2015-07-01']['precision']
         y[:,3] = result[result['split'] == '2017-07-01']['precision']
+        """
+        y2 = np.zeros((5, 4))
         idx = np.argsort(y[:,3])[-3:]
         y2[:3, :] = y[idx]
         y2[3, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
@@ -370,13 +370,11 @@ class plot_grid_results(BaseOperator):
         y2[4, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
         y2[4, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
         y2[4, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
-
-
-        print(len(styles), y.shape)
+        """
 
         fig, ax = plt.subplots(1, figsize=(12, 5))
         for i, style in enumerate(styles):
-            ax.plot(idx_list, y2[i,:], style)
+            ax.plot(idx_list, y[i,:], style)
         ax.set_title('Precision@30% Over Time')
         plt.savefig('model_grid_best.png')
 
@@ -486,15 +484,14 @@ class top_prk(BaseOperator):
         baseline = self.inputs["baseline_prk"].read()
         commonsense = self.inputs["commonsense_prk"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
         i = 1
         for model in models:
             y_prob = model.predict_proba(X)[:, 1]
-            output = pd.DataFrame(list(zip(list(df[target].values), y_prob)), columns=['label', 'score'])
+            output = pd.DataFrame(list(zip(list(y), y_prob)), columns=['label', 'score'])
             precisions = []
             recalls = []
             for k in range(1, 101):

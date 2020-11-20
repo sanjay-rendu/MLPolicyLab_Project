@@ -522,6 +522,7 @@ graph:
     operation: evaluate.plot_grid_results
     arguments:
         save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+        num_best: 3
 
   - node_name: result_sql
     inputs: metric_grid.result_grid

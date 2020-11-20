@@ -276,6 +276,7 @@ class topk_metric_grid(BaseOperator):
             df = self.inputs["data"+str(split)].read()
             model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
 
+            print(df.columns.tolist())
             directory = os.fsencode(model_dir)
             y = df[target].to_numpy()
             X = df.drop(target, axis=1).to_numpy()
@@ -315,13 +316,6 @@ class topk_metric_grid(BaseOperator):
 
             top_models = [x[1] for x in sorted(zip(precisions, models), key=lambda x: x[0], reverse=True)][:top_n]
 
-        # fig, ax = plt.subplots(1, figsize=(12, 5)) ## Graph is not working
-        # sns.lineplot(x='split', y='precision', data=result,
-        #              hue='model', units=range(result.shape[0]), estimator=None,
-        #              ax=ax)
-        # ax.set_title('Precision@30% Over Time')
-        # plt.savefig(save_loc)
-
         self.outputs['result'].write(result)
         self.outputs['top_models'].write(top_models)
 
@@ -342,45 +336,69 @@ class plot_grid_results(BaseOperator):
             "result": Pandas_Dataframe(self.node.inputs[0])
         }
 
-    def run(self, save_path):
+    def plot_best_only(result, prec, num_best):
+        styles = ['b-'] * 3
+        styles += ['k--'] + ['k:']
+
+        prec_best = np.zeros((num_best+2, 4))
+        idx = np.argsort(prec[:,num_best])[-num_best:]
+        prec_best[:num_best, :] = prec[idx]
+
+        prec_best[num_best, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best+1, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
+
+        return prec_best, styles_best
+
+    def run(self, save_path, num_best=3):
         result = self.inputs["result"].read()
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
 
-        #styles = ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
-        #styles += ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
-
-        #styles = ['b-'] * 3
+        styles = ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
+        styles += ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
         styles += ['k--'] + ['k:']
 
-        y = np.zeros((len(result)//4, 4))
-        y[:,0] = result[result['split'] == '2011-07-01']['precision']
-        y[:,1] = result[result['split'] == '2013-07-01']['precision']
-        y[:,2] = result[result['split'] == '2015-07-01']['precision']
-        y[:,3] = result[result['split'] == '2017-07-01']['precision']
+        prec = np.zeros((len(result)//4, 4))
+        prec[:,0] = result[result['split'] == '2011-07-01']['precision']
+        prec[:,1] = result[result['split'] == '2013-07-01']['precision']
+        prec[:,2] = result[result['split'] == '2015-07-01']['precision']
+        prec[:,3] = result[result['split'] == '2017-07-01']['precision']
         """
-        y2 = np.zeros((5, 4))
+        prec_best = np.zeros((5, 4))
         idx = np.argsort(y[:,3])[-3:]
-        y2[:3, :] = y[idx]
-        y2[3, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
-        y2[3, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
-        y2[3, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
-        y2[3, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
-        y2[4, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
-        y2[4, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
-        y2[4, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
-        y2[4, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[:3, :] = y[idx]
+        prec_best[3, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[3, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[3, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[3, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[4, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[4, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[4, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[4, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
         """
 
         fig, ax = plt.subplots(1, figsize=(12, 5))
         for i, style in enumerate(styles):
-            ax.plot(idx_list, y[i,:], style)
+            ax.plot(idx_list, prec[i,:], style)
+        ax.set_title('Precision@30% Over Time')
+        plt.savefig('model_grid.png')
+
+        prec_best, styles_best = self.plot_best_only(result, prec, num_best)
+
+        fig, ax = plt.subplots(1, figsize=(12, 5))
+        for i, style in enumerate(styles_best):
+            ax.plot(idx_list, prec_best[i,:], style)
         ax.set_title('Precision@30% Over Time')
         plt.savefig('model_grid_best.png')
 
         self.outputs['result'].write(result)
         
-
 
 class choose_best_two(BaseOperator):
 

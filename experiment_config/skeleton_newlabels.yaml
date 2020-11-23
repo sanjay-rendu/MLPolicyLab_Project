@@ -120,7 +120,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
+                   'min_samples_split': [2, 4, 8]}
 
   - node_name: svm_grid1
     inputs: preprocess1.preprocessed_train
@@ -226,9 +226,10 @@ graph:
     operation: model.model_grid
     arguments:
       target: label
-      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
-                   'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
 
   - node_name: dt_grid2
     inputs: preprocess2.preprocessed_train
@@ -238,7 +239,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
+                   'min_samples_split': [2, 4, 8]}
 
   - node_name: svm_grid2
     inputs: preprocess2.preprocessed_train
@@ -356,7 +357,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
+                   'min_samples_split': [2, 4, 8]}
 
   - node_name: svm_grid3
     inputs: preprocess3.preprocessed_train
@@ -475,7 +476,7 @@ graph:
       target: label
       model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
                    'max_depth': [3, 5, 10, 20, 50, 100],
-                   'min_samples_split': [0.1, 0.5, 1.0, 2, 4, 8]}
+                   'min_samples_split': [2, 4, 8]}
 
   - node_name: svm_grid4
     inputs: preprocess4.preprocessed_train
@@ -521,6 +522,7 @@ graph:
     operation: evaluate.plot_grid_results
     arguments:
         save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+        num_best: 3
 
   - node_name: result_sql
     inputs: metric_grid.result_grid
@@ -545,3 +547,18 @@ graph:
     arguments:
       table: top_models_prk
       schema: sketch
+  
+  - node_name: plot_best_prk
+    inputs: topk_top_models.prk_output
+    outputs: result_grid
+    operation: evaluate.plot_best_prk
+    arguments:
+        save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+
+## Feature Importance ##
+
+  - node_name: shap
+    inputs: []
+    outputs: results
+    operation: feature_importance.get_shap
+

@@ -92,14 +92,12 @@ class predict_val(BaseOperator):
         df = self.inputs["data"].read()
         model = self.inputs["model"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
-        y = df.as_matrix(columns=[target])
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         y_prob = model.predict_proba(X)[:, 1]
 
-        output = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
+        output = pd.DataFrame(list(zip(list(y),y_prob)), columns=['label', 'score'])
 
         self.outputs["prediction"].write(output)
 
@@ -136,7 +134,7 @@ class topk_metric(BaseOperator):
         """
         if colnames is None:
             colnames = {'label': 'label', 'score': 'score'}
-        result = result.sort_values(by=[colnames['score']], ascending=False)
+        result = result.sort_values(by='score', ascending=False)
         df_len = len(result.index)
         preds = [1] * math.floor(df_len * k)
         preds += [0] * (df_len - math.floor(df_len * k))
@@ -251,13 +249,12 @@ class topk_metric_grid(BaseOperator):
         """
         if colnames is None:
             colnames = {'label': 'label', 'score': 'score'}
-        result = result.sort_values(by=[colnames['score']], ascending=False)
+        
+        result = result.sort_values(by='score', ascending=False)
         df_len = len(result.index)
         preds = [1] * math.floor(df_len * k)
         preds += [0] * (df_len - math.floor(df_len * k))
         labels = result[colnames['label']].tolist()
-
-        result['preds'] = preds
 
         if metric == 'precision':
             return precision_score(labels, preds), result
@@ -279,34 +276,35 @@ class topk_metric_grid(BaseOperator):
             df = self.inputs["data"+str(split)].read()
             model_dir = os.path.dirname(self.inputs["models"+str(split)].read_loc())
 
+            print(df.columns.tolist())
             directory = os.fsencode(model_dir)
-            features = list(set(list(df.columns)) - {target})
-            X = df.as_matrix(columns=features)
+            y = df[target].to_numpy()
+            X = df.drop(target, axis=1).to_numpy()
 
-            for file in os.listdir(directory):
+            for file in sorted(os.listdir(directory)):
                 filename = str(os.fsdecode(file))
 
                 if filename.endswith(".pkl"):
                     with open(os.path.join(str(model_dir), filename), 'rb') as handle:
                         model_list = pickle.load(handle)
 
-                for clf in model_list:
-                    y_prob = clf['model'].predict_proba(X)[:, 1]
+                    for clf in model_list:
+                        y_prob = clf['model'].predict_proba(X)[:, 1]
 
-                    res = pd.DataFrame(list(zip(list(df[target].values),y_prob)), columns=['label', 'score'])
-                    temp, df_preds = self.topk(res, k=0.3, metric='precision')
+                        res = pd.DataFrame(list(zip(list(y),y_prob)), columns=['label', 'score'])
+                        temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
-                    result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
-                                            'config': str(clf['model']), 'precision': temp}, ignore_index = True)
-                    if split == n_splits+1:
-                        precisions.append(temp)
-                        models.append(clf['model'])
+                        result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
+                                                'config': str(clf['model']), 'precision': temp}, ignore_index = True)
+                        if split == n_splits:
+                            precisions.append(temp)
+                            models.append(clf['model'])
         
             score = self.baserate(df)
             score1 = self.common_sense(df)
 
-            baserate = pd.DataFrame(list(zip(list(df.label.values), score)), columns=['label', 'score'])
-            common_sense = pd.DataFrame(list(zip(list(df.label.values), score1)), columns=['label', 'score'])
+            baserate = pd.DataFrame(list(zip(list(y), score)), columns=['label', 'score'])
+            common_sense = pd.DataFrame(list(zip(list(y), score1)), columns=['label', 'score'])
 
             temp, df_preds = self.topk(baserate, k=0.3, metric='precision')
             result = result.append({'split': idx_list[split-1], 'model': 'baseline', 'config': 'NA','precision': temp},
@@ -316,14 +314,7 @@ class topk_metric_grid(BaseOperator):
             result = result.append({'split': idx_list[split-1], 'model': 'commonsense', 'config': 'NA',
                                     'precision': temp}, ignore_index = True)
 
-            top_models = [x[1] for x in sorted(zip(precisions, models), key=lambda x: x[0], reverse=True)[:3]][:top_n]
-
-        # fig, ax = plt.subplots(1, figsize=(12, 5)) ## Graph is not working
-        # sns.lineplot(x='split', y='precision', data=result,
-        #              hue='model', units=range(result.shape[0]), estimator=None,
-        #              ax=ax)
-        # ax.set_title('Precision@30% Over Time')
-        # plt.savefig(save_loc)
+            top_models = [x[1] for x in sorted(zip(precisions, models), key=lambda x: x[0], reverse=True)][:top_n]
 
         self.outputs['result'].write(result)
         self.outputs['top_models'].write(top_models)
@@ -345,34 +336,69 @@ class plot_grid_results(BaseOperator):
             "result": Pandas_Dataframe(self.node.inputs[0])
         }
 
-    def run(self, save_path):
+    def plot_best_only(result, prec, num_best):
+        styles = ['b-'] * 3
+        styles += ['k--'] + ['k:']
+
+        prec_best = np.zeros((num_best+2, 4))
+        idx = np.argsort(prec[:,num_best])[-num_best:]
+        prec_best[:num_best, :] = prec[idx]
+
+        prec_best[num_best, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best+1, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
+
+        return prec_best, styles_best
+
+    def run(self, save_path, num_best=3):
         result = self.inputs["result"].read()
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
 
-        styles = ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
-        styles += ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
-        #styles += ['g-']*len(result['model'] == 'LogisticRegression')//4
+        styles = ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
+        styles += ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
         styles += ['k--'] + ['k:']
 
-        y = np.zeros((len(result)//4, 4))
-        y[:,0] = result[result['split'] == '2011-07-01']['precision']
-        y[:,1] = result[result['split'] == '2013-07-01']['precision']
-        y[:,2] = result[result['split'] == '2015-07-01']['precision']
-        y[:,3] = result[result['split'] == '2017-07-01']['precision']
-
-
-        print(len(styles), y.shape)
+        prec = np.zeros((len(result)//4, 4))
+        prec[:,0] = result[result['split'] == '2011-07-01']['precision']
+        prec[:,1] = result[result['split'] == '2013-07-01']['precision']
+        prec[:,2] = result[result['split'] == '2015-07-01']['precision']
+        prec[:,3] = result[result['split'] == '2017-07-01']['precision']
+        """
+        prec_best = np.zeros((5, 4))
+        idx = np.argsort(y[:,3])[-3:]
+        prec_best[:3, :] = y[idx]
+        prec_best[3, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[3, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[3, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[3, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[4, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[4, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[4, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[4, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
+        """
 
         fig, ax = plt.subplots(1, figsize=(12, 5))
         for i, style in enumerate(styles):
-            ax.plot(idx_list, y[i,:], style)
+            ax.plot(idx_list, prec[i,:], style)
         ax.set_title('Precision@30% Over Time')
         plt.savefig('model_grid.png')
 
+        prec_best, styles_best = self.plot_best_only(result, prec, num_best)
+
+        fig, ax = plt.subplots(1, figsize=(12, 5))
+        for i, style in enumerate(styles_best):
+            ax.plot(idx_list, prec_best[i,:], style)
+        ax.set_title('Precision@30% Over Time')
+        plt.savefig('model_grid_best.png')
+
         self.outputs['result'].write(result)
         
-
 
 class choose_best_two(BaseOperator):
 
@@ -436,12 +462,13 @@ class top_prk(BaseOperator):
         """
         if colnames is None:
             colnames = {'label': 'label', 'score': 'score'}
+        
         result = result.sort_values(by=[colnames['score']], ascending=False)
         df_len = len(result.index)
         preds = [1] * math.floor(df_len * k)
         preds += [0] * (df_len - math.floor(df_len * k))
         labels = result[colnames['label']].tolist()
-
+        
         result['preds'] = preds
 
         if metric == 'precision':
@@ -461,7 +488,7 @@ class top_prk(BaseOperator):
         ax.set_xlabel('Percent of Total Bills')
         ax.set_ylabel("Precision", color="red")
         ax.set_title('PR-k of model')
-        ax.set_ylim(0, 1)
+        ax.set_ylim(0, 0.2)
 
         ax2 = ax.twinx()
         ax2.plot(x, recalls,color="blue")
@@ -475,15 +502,14 @@ class top_prk(BaseOperator):
         baseline = self.inputs["baseline_prk"].read()
         commonsense = self.inputs["commonsense_prk"].read()
 
-        features = list(set(list(df.columns)) - {target})
-
-        X = df.as_matrix(columns=features)
+        y = df[target].to_numpy()
+        X = df.drop(target, axis=1).to_numpy()
 
         result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
         i = 1
         for model in models:
             y_prob = model.predict_proba(X)[:, 1]
-            output = pd.DataFrame(list(zip(list(df[target].values), y_prob)), columns=['label', 'score'])
+            output = pd.DataFrame(list(zip(list(y), y_prob)), columns=['label', 'score'])
             precisions = []
             recalls = []
             for k in range(1, 101):
@@ -493,9 +519,61 @@ class top_prk(BaseOperator):
                 precisions.append(temp[0])
                 recalls.append(temp[1])
 
-            self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
+            #self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
             i += 1
 
-        result = result.append(baseline, ignore_index=True)
-        result = result.append(commonsense, ignore_index=True)
+        result = pd.concat([result, baseline, commonsense],ignore_index=True)
+
         self.outputs["prk_out"].write(result)
+
+class plot_best_prk(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {
+            "prk_out": Pandas_Dataframe(self.node.inputs[0]),
+        }
+
+    @property
+    def outputs(self):
+        return {
+            "result": Pandas_Dataframe(self.node.inputs[0])
+        }
+
+    def plot_prk(self, precisions, recalls, graph_name):
+
+        fig, ax = plt.subplots()
+
+        assert len(precisions) == len(recalls)
+        x = np.linspace(0, 1, len(precisions))
+        ax.plot(x, precisions, color="red")
+        ax.set_xlabel('Percent of Total Bills')
+        ax.set_ylabel("Precision", color="red")
+        ax.set_title('PR-k of model')
+        ax.set_ylim(0, 1)
+
+        ax2 = ax.twinx()
+        ax2.plot(x, recalls,color="blue")
+        ax2.set_ylabel("Recall", color="blue")
+        ax2.set_ylim(0, 1)
+        fig.savefig(os.path.join(os.path.dirname(self.inputs["prk_out"].data_location),"{}.png".format(graph_name)))
+
+
+    def run(self, save_path):
+        prk = self.inputs["prk_out"].read()
+
+        precision1 = prk[prk['model_rank'] == 1]['precision']
+        precision2 = prk[prk['model_rank'] == 2]['precision']
+        precision_baseline = prk[prk['model'] == 'baseline']['precision']
+        precision_commonsense = prk[prk['model'] == 'commonsense']['precision']
+        recall1 = prk[prk['model_rank'] == 1]['recall']
+        recall2 = prk[prk['model_rank'] == 2]['recall']
+        recall_baseline = prk[prk['model'] == 'baseline']['recall']
+        recall_commonsense = prk[prk['model'] == 'commonsense']['recall']
+
+        self.plot_prk(precision1, recall1, 'topk_model_1')
+        self.plot_prk(precision2, recall2, 'topk_model_2')
+        self.plot_prk(precision_baseline, recall_baseline, 'topk_model_baseline')
+        self.plot_prk(precision_commonsense, recall_commonsense, 'topk_model_recall')
+
+        self.outputs['result'].write(prk)

@@ -188,14 +188,21 @@ class CustomPreprocess(BaseOperator):
 
         data_availability = train.describe(
             include='all').loc['count'] / train.shape[0]
-        selected_cols = data_availability[data_availability >
-                                          drop_missing_perc].index
-        selected_cols = set(selected_cols) - \
+        all_cols = list(data_availability[data_availability >
+                                          drop_missing_perc].index)
+        """
+        selected_cols = set(all_cols) - \
             (set(target_variable).union(set(*ignore_variables)))
 
         numeric_cols = list(
             set(train._get_numeric_data()).intersection(selected_cols))
         categorical_cols = list(selected_cols - set(numeric_cols))
+        """
+        all_cols.remove(target_variable)
+        selected_cols = [col for col in all_cols if col not in ignore_variables]
+
+        numeric_cols = [col for col in list(train._get_numeric_data()) if col in selected_cols]
+        categorical_cols = [col for col in selected_cols if col not in numeric_cols]
 
         preprocess = Pipeline([("features",
                                 DFFeatureUnion([("numeric",

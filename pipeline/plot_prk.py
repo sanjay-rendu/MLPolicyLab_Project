@@ -32,7 +32,7 @@ def plot_prk(precisions, recalls, graph_name):
         ax.set_xlabel('Percent of Total Bills')
         ax.set_ylabel("Precision", color="red")
         ax.set_title('PR-k of model')
-        ax.set_ylim(0, .1)
+        ax.set_ylim(0, 1)
         ax2 = ax.twinx()
         ax2.plot(x, recalls,color="blue")
         ax2.set_ylabel("Recall", color="blue")
@@ -40,7 +40,7 @@ def plot_prk(precisions, recalls, graph_name):
         fig.savefig("{}".format(graph_name))
         #fig.savefig(os.path.join(os.path.dirname(self.inputs["predictions"].data_location),"{}.png".format(graph_name)))
 
-plot_prk(log1["precision"], log1["recall"], "logistic1(c=0.01).png")
-plot_prk(log2["precision"], log2["recall"], "logistic2(c=0.05).png")
+plot_prk(log1["precision"], log1["recall"], "DecisionTree1(depth=3, min_sample_leaf =1, split =2).png")
+plot_prk(log2["precision"], log2["recall"], "DecisionTree2(min_sample_split =4, depth =3).png")
 plot_prk(base["precision"], base["recall"], "base_model.png")
 plot_prk(commonsense["precision"], commonsense["recall"], "commonsense_model.png")

@@ -86,8 +86,12 @@ class model_grid(BaseOperator):
     def run(self, target, model_spec):
         df = self.inputs["train"].read()
         
+        print(df.columns.tolist())
+
         y = df[target].to_numpy()
         X = df.drop(target, axis=1).to_numpy()
+
+        print(X.shape)
 
         mod_name, func_name = model_spec['model_name'].rsplit('.',1)
         mod = importlib.import_module(mod_name)
@@ -96,24 +100,21 @@ class model_grid(BaseOperator):
 
         params_list = [dict(zip(model_spec, t)) for t in list(itertools.product(*model_spec.values()))]
 
-        list_of_models = []
-        for params in params_list:
+        #list_of_models = []
+        model_dir = os.path.dirname(self.outputs["models"].read_loc())
+        if not os.path.exists(model_dir):
+            os.mkdir(model_dir)
+        for i, params in enumerate(params_list):
             params['class_weight'] = 'balanced'
             params['random_state'] = 123
             clf = func()
             clf.set_params(**params)
             clf.fit(X, y)
             params['model'] = clf
-            list_of_models.append(params)
 
-        model_dir = os.path.dirname(self.outputs["models"].read_loc())
-
-        if not os.path.exists(model_dir):
-            os.mkdir(model_dir)
-
-        save_file = os.path.join(model_dir, '{}.pkl'.format(func_name))
-        with open(save_file, 'wb') as handle:
-            pickle.dump(list_of_models, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            save_file = os.path.join(model_dir, '{}{}.pkl'.format(func_name, i))
+            with open(save_file, 'wb') as handle:
+                pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 class dummy_folder(BaseOperator):
 

@@ -278,6 +278,7 @@ class topk_metric_grid(BaseOperator):
 
             print(df.columns.tolist())
             directory = os.fsencode(model_dir)
+
             y = df[target].to_numpy()
             X = df.drop(target, axis=1).to_numpy()
 
@@ -336,9 +337,9 @@ class plot_grid_results(BaseOperator):
             "result": Pandas_Dataframe(self.node.inputs[0])
         }
 
-    def plot_best_only(result, prec, num_best):
-        styles = ['b-'] * 3
-        styles += ['k--'] + ['k:']
+    def plot_best_only(self, result, prec, num_best):
+        styles_best = ['b-'] * 3
+        styles_best += ['k--'] + ['k:']
 
         prec_best = np.zeros((num_best+2, 4))
         idx = np.argsort(prec[:,num_best])[-num_best:]
@@ -360,8 +361,10 @@ class plot_grid_results(BaseOperator):
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
 
-        styles = ['r-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
-        styles += ['b-']*(len(result[result['model'] == 'LogisticRegression'])//4)
+        styles = ['g-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
+        styles += ['c-']*(len(result[result['model'] == 'LogisticRegression'])//4)
+        styles += ['r-']*(len(result[result['model'] == 'SVC'])//4)
+        styles += ['b-']*(len(result[result['model'] == 'RandomForestClassifier'])//4)
         styles += ['k--'] + ['k:']
 
         prec = np.zeros((len(result)//4, 4))
@@ -556,7 +559,7 @@ class plot_best_prk(BaseOperator):
         ax2.plot(x, recalls,color="blue")
         ax2.set_ylabel("Recall", color="blue")
         ax2.set_ylim(0, 1)
-        fig.savefig(os.path.join(os.path.dirname(self.inputs["prk_out"].data_location),"{}.png".format(graph_name)))
+        fig.savefig("{}.png".format(graph_name))#os.path.join(os.path.dirname(self.inputs["prk_out"].data_location),"{}.png".format(graph_name)))
 
 
     def run(self, save_path):

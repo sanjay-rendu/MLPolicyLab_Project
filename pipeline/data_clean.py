@@ -76,6 +76,9 @@ class feature_selector(BaseOperator):
         test = self.inputs["test"].read()
         test = test[selected_features]
 
+        print(train.columns.tolist())
+        print(test.columns.tolist())
+
         self.outputs["filtered_train"].write(train)
         self.outputs["filtered_test"].write(test)
 
@@ -101,11 +104,36 @@ class monthly_row_selector(BaseOperator):
         conditions = [(dfnew['present_date'] == dfnew['final_date'])]
         choices = [30]
 
-        dfnew['day_from_week_start'] = np.select(conditions, choices,
+        dfnew['day_from_month_start'] = np.select(conditions, choices,
                                                  default=(dfnew['present_date'] - dfnew['original_date']).dt.days % 30)
 
         # filter
         d = [0, 30]
-        final_df = dfnew.loc[dfnew['day_from_week_start'].isin(d)]
+        final_df = dfnew.loc[dfnew['day_from_month_start'].isin(d)]
+
+        print(final_df.columns.tolist())
 
         self.outputs["filtered_data"].write(final_df)
+
+
+class merge_distric_data(BaseOperator):
+
+    @property
+    def inputs(self):
+        return {"distric_csv_loc": self.node.inputs[0].external_ref,
+                "raw_data": Pandas_Dataframe(self.node.inputs[1])}
+
+    @property
+    def outputs(self):
+        return {"merged_data": Pandas_Dataframe(self.node.outputs[0])}
+
+    def run(self):
+        csv_loc = self.inputs["distric_csv_loc"]
+        df = self.inputs["raw_data"].read()
+
+        district = pd.read_csv(csv_loc)
+
+        df.join(district, on='primary_sponsor_district')
+        print(df.head())    
+
+        self.outputs["merged_data"].write(df)

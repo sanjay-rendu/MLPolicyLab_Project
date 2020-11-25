@@ -13,7 +13,6 @@ select	n1.bill_id,
 		n1.subjects,
 		n2.primary_sponsor_district,
 		n2.ballotpedia
-into sketch.bill_processed_district
 from (
 	select 	m.bill_id,
 			m.session_id, 

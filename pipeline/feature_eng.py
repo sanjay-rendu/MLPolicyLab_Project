@@ -184,20 +184,26 @@ class CustomPreprocess(BaseOperator):
         test = self.inputs["test"].read()
 
         if ignore_variables is not list:
-            ignore_variables = [ignore_variables]
+            ignore_variables = list(ignore_variables)
 
         data_availability = train.describe(
-            include='all').loc['count'] / train.shape[0]
+            include='all').loc['count'] / len(train)
+        
+        print(len(train))
+        print(train.describe(include='all').loc['count'])
+        print(data_availability)
+
         all_cols = list(data_availability[data_availability >
                                           drop_missing_perc].index)
         """
-        selected_cols = set(all_cols) - \
-            (set(target_variable).union(set(*ignore_variables)))
+        selected_cols1 = set(all_cols) - \
+            (set(target_variable).union(set(ignore_variables)))
 
-        numeric_cols = list(
-            set(train._get_numeric_data()).intersection(selected_cols))
-        categorical_cols = list(selected_cols - set(numeric_cols))
+        numeric_cols1 = list(
+            set(train._get_numeric_data()).intersection(selected_cols1))
+        categorical_cols1 = list(selected_cols1 - set(numeric_cols1))
         """
+
         all_cols.remove(target_variable)
         selected_cols = [col for col in all_cols if col not in ignore_variables]
 
@@ -219,8 +225,29 @@ class CustomPreprocess(BaseOperator):
                                                             DFOneHot())]))]))])
 
         processed_train = preprocess.fit_transform(train)
-        processed_train[target_variable] = train[target_variable]
         processed_test = preprocess.transform(test)
+
+        processed_train = (processed_train-processed_train.min())/(processed_train.max()-processed_train.min())
+        processed_test = (processed_test-processed_test.min())/(processed_test.max()-processed_test.min())
+
+        processed_train[target_variable] = train[target_variable]
+        processed_test[target_variable] = test[target_variable]
+
+        print(processed_train.columns.tolist())
+        print(processed_test.columns.tolist())
 
         self.outputs["preprocessed_train"].write(processed_train)
         self.outputs["preprocessed_test"].write(processed_test)
+
+if __name__=="__main__":
+    import pickle
+    lda = pickle.load(open("/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lda_model4/lda_model.csv", "rb"))
+    count_vectorizer = pickle.load(open("/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/lda_model4/vectorizer.csv", "rb"))
+    number_words = 5
+    def print_topics(model, count_vectorizer, n_top_words):
+        words = count_vectorizer.get_feature_names()
+        for topic_idx, topic in enumerate(model.components_):
+            print("\nTopic #%d:" % topic_idx)
+            print(" ".join([words[i]
+                            for i in topic.argsort()[:-n_top_words - 1:-1]]))
+    print_topics(lda, count_vectorizer, number_words)

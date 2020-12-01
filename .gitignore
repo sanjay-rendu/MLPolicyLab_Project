@@ -2,3 +2,4 @@
 __pycache__/
 /pipeline/.idea/
 DAGGIT_HOME
+*.out

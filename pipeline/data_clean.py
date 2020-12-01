@@ -133,7 +133,12 @@ class merge_distric_data(BaseOperator):
 
         district = pd.read_csv(csv_loc)
 
-        df.join(district, on='primary_sponsor_district')
-        print(df.head())    
+        print(df.columns.tolist())
+        print(df.dtypes.tolist())
+        print(district.columns.tolist())
+        print(district.dtypes.tolist())
+
+        df = df.merge(district, on='primary_sponsor_district')
+        print(df.columns.tolist())
 
         self.outputs["merged_data"].write(df)

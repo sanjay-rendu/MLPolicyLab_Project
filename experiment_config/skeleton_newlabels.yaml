@@ -4,7 +4,7 @@ owner: bills3_group
 inputs:
   sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/latestLabels.sql"
   sql_bill_text: "/data/groups/bills3/mlpp_project_home/experiment_config/bill_texts.sql"
-  csv_district: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2//home/NY_district_data.csv"
+  csv_district: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/NY_district_data.csv"
 
 outputs:
   metrics_base1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics1.txt"
@@ -30,15 +30,15 @@ graph:
     outputs: monthly_bill_data
     operation: data_clean.monthly_row_selector
 
-  # - node_name: merge_district_data
-  #   inputs: [csv_district, monthly_snapshots.monthly_bill_data]
-  #   outputs: merged_bill_data
-  #   operation: data_clean.merge_distric_data
+  - node_name: merge_district_data
+    inputs: [csv_district, monthly_snapshots.monthly_bill_data]
+    outputs: merged_bill_data
+    operation: data_clean.merge_distric_data
      
 
 ## set 1: train [2009-01-01, 2010-01-01); test [2010-01-01 + 180 days, 2011-07-01) ##
   - node_name: split1
-    inputs: monthly_snapshots.monthly_bill_data
+    inputs: merge_district_data.merged_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -94,7 +94,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9','label']
+                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
 
   - node_name: preprocess1 # generic preprocess - can be changed later
     inputs: [select1.fil_train, select1.fil_val]
@@ -135,8 +135,9 @@ graph:
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+                   'kernel': ['rbf', 'poly'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+                   'probability': [True]}
 
   - node_name: rf_grid1
     inputs: preprocess1.preprocessed_train
@@ -157,7 +158,7 @@ graph:
 
 ## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
   - node_name: split2
-    inputs: monthly_snapshots.monthly_bill_data
+    inputs: merge_district_data.merged_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -213,7 +214,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9','label']
+                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
 
   - node_name: preprocess2 # generic preprocess - can be changed later
     inputs: [select2.fil_train, select2.fil_val]
@@ -254,8 +255,9 @@ graph:
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+                   'kernel': ['rbf', 'poly'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+                   'probability': [True]}
 
   - node_name: rf_grid2
     inputs: preprocess2.preprocessed_train
@@ -275,7 +277,7 @@ graph:
 
 ## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
   - node_name: split3
-    inputs: monthly_snapshots.monthly_bill_data
+    inputs: merge_district_data.merged_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -331,7 +333,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9','label']
+                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
 
   - node_name: preprocess3 # generic preprocess - can be changed later
     inputs: [select3.fil_train, select3.fil_val]
@@ -372,8 +374,9 @@ graph:
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+                   'kernel': ['rbf', 'poly'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+                   'probability': [True]}
 
   - node_name: rf_grid3
     inputs: preprocess3.preprocessed_train
@@ -393,7 +396,7 @@ graph:
 
 ## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
   - node_name: split4
-    inputs: monthly_snapshots.monthly_bill_data
+    inputs: merge_district_data.merged_bill_data
     outputs: [train, val]
     operation: split.timeSplit
     arguments:
@@ -450,7 +453,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9','label']
+                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
 
   - node_name: preprocess4 # generic preprocess - can be changed later
     inputs: [select4.fil_train, select4.fil_val]
@@ -491,8 +494,9 @@ graph:
     arguments:
       target: label
       model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['linear', 'rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+                   'kernel': ['rbf', 'poly'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+                   'probability': [True]}
 
   - node_name: rf_grid4
     inputs: preprocess4.preprocessed_train

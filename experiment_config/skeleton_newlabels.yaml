@@ -107,6 +107,17 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
+  - node_name: preprocess1_bf # generic preprocess - can be changed later
+    inputs: [select1.fil_train, select1.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
   - node_name: lr_grid1
     inputs: preprocess1.preprocessed_train
     outputs: models
@@ -160,7 +171,7 @@ graph:
                    'max_depth': [5, 10, 20, 100]}
 
   - node_name: models1
-    inputs: [lr_grid1.models, dt_grid1.models, lsvc_grid1.models]
+    inputs: [lr_grid1.models, dt_grid1.models, lsvc_grid1.models, rf_grid1.models]
     outputs: dir
     operation: model.dummy_folder
 
@@ -236,6 +247,17 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
+  - node_name: preprocess2_bf # generic preprocess - can be changed later
+    inputs: [select2.fil_train, select2.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
   - node_name: lr_grid2
     inputs: preprocess2.preprocessed_train
     outputs: models
@@ -289,7 +311,7 @@ graph:
                    'max_depth': [5, 10, 20, 100]}
 
   - node_name: models2
-    inputs: [lr_grid2.models, dt_grid2.models, lsvc_grid2.models]
+    inputs: [lr_grid2.models, dt_grid2.models, lsvc_grid2.models, rf_grid2.models]
     outputs: dir
     operation: model.dummy_folder
 
@@ -364,6 +386,17 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
+  - node_name: preprocess3_bf # generic preprocess - can be changed later
+    inputs: [select3.fil_train, select3.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
   - node_name: lr_grid3
     inputs: preprocess3.preprocessed_train
     outputs: models
@@ -417,7 +450,7 @@ graph:
                    'max_depth': [5, 10, 20, 100]}
 
   - node_name: models3
-    inputs: [lr_grid3.models, dt_grid3.models, lsvc_grid3.models]
+    inputs: [lr_grid3.models, dt_grid3.models, lsvc_grid3.models, rf_grid3.models]
     outputs: dir
     operation: model.dummy_folder
 
@@ -493,6 +526,18 @@ graph:
       numeric_impute: median
       categorical_impute: most_frequent
 
+  - node_name: preprocess4_bf # generic preprocess - can be changed later
+    inputs: [select4.fil_train, select4.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+      keep_id: True
+
   - node_name: lr_grid4
     inputs: preprocess4.preprocessed_train
     outputs: models
@@ -546,7 +591,7 @@ graph:
                    'max_depth': [5, 10, 20, 100]}
 
   - node_name: models4
-    inputs: [lr_grid4.models, dt_grid4.models, lsvc_grid4.models]
+    inputs: [lr_grid4.models, dt_grid4.models, lsvc_grid4.models, rf_grid4.models]
     outputs: dir
     operation: model.dummy_folder
 

@@ -67,14 +67,14 @@ if __name__ == "__main__":
         train = train.drop("bill_id", axis=1)
         val = val.drop("bill_id", axis=1)
 
-    #X_train = train.to_numpy()
-    #X_val = val.to_numpy()
-    #shap_train = shap.maskers.Independent(X_train)
-    #explainer = shap.TreeExplainer(model, shap_train)
-    #shap_val = X_val
-    #shap_values = explainer.shap_values(shap_val)
-    #shap.summary_plot(shap_values, shap_val, plot_type="bar", show=False, feature_names=val.columns)
-    #plt.tight_layout()
-    #plt.savefig("{}.png".format("shap"))
+    X_train = train.to_numpy()
+    X_val = val.to_numpy()
+    shap_train = shap.maskers.Independent(X_train)
+    explainer = shap.TreeExplainer(model, shap_train)
+    shap_val = X_val
+    shap_values = explainer.shap_values(shap_val)
+    shap.summary_plot(shap_values, shap_val, plot_type="bar", show=False, feature_names=val.columns)
+    plt.tight_layout()
+    plt.savefig("{}.png".format("shap"))
 
     get_feature_differences(model, val)

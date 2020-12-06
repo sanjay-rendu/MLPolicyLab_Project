@@ -179,7 +179,8 @@ class CustomPreprocess(BaseOperator):
             target_variable,
             ignore_variables=None,
             categorical_impute=None,
-            numeric_impute=None):
+            numeric_impute=None,
+            keep_id = False):
         train = self.inputs["train"].read()
         test = self.inputs["test"].read()
 
@@ -205,6 +206,8 @@ class CustomPreprocess(BaseOperator):
         """
 
         all_cols.remove(target_variable)
+        train_ids = train["bill_id"]
+        test_ids = test["bill_id"]
         selected_cols = [col for col in all_cols if col not in ignore_variables]
 
         numeric_cols = [col for col in list(train._get_numeric_data()) if col in selected_cols]
@@ -227,14 +230,21 @@ class CustomPreprocess(BaseOperator):
         processed_train = preprocess.fit_transform(train)
         processed_test = preprocess.transform(test)
 
+        print(processed_train.min())
+        print(processed_train.max())
         processed_train = (processed_train-processed_train.min())/(processed_train.max()-processed_train.min())
+        print(processed_test.min())
+        print(processed_test.max())
         processed_test = (processed_test-processed_test.min())/(processed_test.max()-processed_test.min())
-
         processed_train[target_variable] = train[target_variable]
         processed_test[target_variable] = test[target_variable]
 
         print(processed_train.columns.tolist())
         print(processed_test.columns.tolist())
+
+        if keep_id:
+            processed_train["bill_id"] = train_ids
+            processed_test["bill_id"] = test_ids
 
         self.outputs["preprocessed_train"].write(processed_train)
         self.outputs["preprocessed_test"].write(processed_test)

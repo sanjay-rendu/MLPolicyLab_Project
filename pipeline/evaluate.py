@@ -4,6 +4,7 @@ from daggit.core.base.factory import BaseOperator
 import pandas as pd
 import math
 from sklearn.metrics import precision_score, recall_score
+from sklearn.svm import LinearSVC
 import matplotlib.pyplot as plt
 import pickle
 import os
@@ -287,19 +288,47 @@ class topk_metric_grid(BaseOperator):
 
                 if filename.endswith(".pkl"):
                     with open(os.path.join(str(model_dir), filename), 'rb') as handle:
-                        model_list = pickle.load(handle)
+                        try:
+                            model_list = pickle.load(handle)
+                        except:
+                            continue
 
-                    for clf in model_list:
-                        y_prob = clf['model'].predict_proba(X)[:, 1]
+                    if isinstance(model_list, list):
+                        clf_i = 0
+                        for clf in model_list:
+                            if clf_i == 0:
+                                print(str(clf['model']))
+                                print(len(model_list))
+                            if clf_i > 40:
+                                break
+                            if isinstance(clf['model'], LinearSVC):
+                                y_prob = clf['model'].decision_function(X)
+                            else:
+                                y_prob = clf['model'].predict_proba(X)[:, 1]
+
+                            res = pd.DataFrame(list(zip(list(y),y_prob)), columns=['label', 'score'])
+                            temp, df_preds = self.topk(res, k=0.3, metric='precision')
+
+                            result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
+                                                    'config': str(clf['model']), 'precision': temp}, ignore_index = True)
+                            if split == n_splits:
+                                precisions.append(temp)
+                                models.append(clf['model'])
+                            clf_i += 1
+                    else:
+                        if isinstance(model_list['model'], LinearSVC):
+                            y_prob = model_list['model'].decision_function(X)
+                        else:
+                            y_prob = model_list['model'].predict_proba(X)[:, 1]
 
                         res = pd.DataFrame(list(zip(list(y),y_prob)), columns=['label', 'score'])
                         temp, df_preds = self.topk(res, k=0.3, metric='precision')
 
                         result = result.append({'split': idx_list[split-1], 'model': filename[:-4],
-                                                'config': str(clf['model']), 'precision': temp}, ignore_index = True)
+                                                'config': str(model_list['model']), 'precision': temp}, ignore_index = True)
                         if split == n_splits:
                             precisions.append(temp)
-                            models.append(clf['model'])
+                            models.append(model_list['model'])
         
             score = self.baserate(df)
             score1 = self.common_sense(df)
@@ -345,14 +374,14 @@ class plot_grid_results(BaseOperator):
         idx = np.argsort(prec[:,num_best])[-num_best:]
         prec_best[:num_best, :] = prec[idx]
 
-        prec_best[num_best, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best+1, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
-        prec_best[num_best+1, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
-        prec_best[num_best+1, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
-        prec_best[num_best+1, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best, 0] = result[(result['split'] == '7/1/2011') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 1] = result[(result['split'] == '7/1/2013') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 2] = result[(result['split'] == '7/1/2015') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 3] = result[(result['split'] == '7/1/2017') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best+1, 0] = result[(result['split'] == '7/1/2011') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 1] = result[(result['split'] == '7/1/2013') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 2] = result[(result['split'] == '7/1/2015') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 3] = result[(result['split'] == '7/1/2017') & (result['model'] == 'commonsense')]['precision']
 
         return prec_best, styles_best
 
@@ -363,15 +392,16 @@ class plot_grid_results(BaseOperator):
 
         styles = ['g-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
         styles += ['c-']*(len(result[result['model'] == 'LogisticRegression'])//4)
-        styles += ['r-']*(len(result[result['model'] == 'SVC'])//4)
+        styles += ['r-']*(len(result[result['model'] == 'LinearSVC'])//4)
         styles += ['b-']*(len(result[result['model'] == 'RandomForestClassifier'])//4)
         styles += ['k--'] + ['k:']
 
+        print(len(result))
         prec = np.zeros((len(result)//4, 4))
-        prec[:,0] = result[result['split'] == '2011-07-01']['precision']
-        prec[:,1] = result[result['split'] == '2013-07-01']['precision']
-        prec[:,2] = result[result['split'] == '2015-07-01']['precision']
-        prec[:,3] = result[result['split'] == '2017-07-01']['precision']
+        prec[:,0] = result[result['split'] == '7/1/2011']['precision']
+        prec[:,1] = result[result['split'] == '7/1/2013']['precision']
+        prec[:,2] = result[result['split'] == '7/1/2015']['precision']
+        prec[:,3] = result[result['split'] == '7/1/2017']['precision']
         """
         prec_best = np.zeros((5, 4))
         idx = np.argsort(y[:,3])[-3:]

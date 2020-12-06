@@ -6,6 +6,7 @@ class get_shap(BaseOperator):
     @property
     def inputs(self):
         return {
+            "models": Pickle_Obj(self.node.inputs[0]),
             # "model": Pickle_Obj(self.node.inputs[0]),
             # "train": Pandas_Dataframe(self.node.inputs[1]),
             # "val": Pandas_Dataframe(self.node.inputs[2])
@@ -18,8 +19,9 @@ class get_shap(BaseOperator):
         }
 
     def run(self, model_type = "misc", target="label", graph_name="shap_bar"):
-        with open("/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/metric_grid/top_models.csv", 'rb') as handle:
-            model_list = pickle.load(handle)
+        # with open("/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/metric_grid/top_models.csv", 'rb') as handle:
+        #     model_list = pickle.load(handle)
+        model_list = self.inputs["models"].read()
         train = pd.read_csv("/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/preprocess4/preprocessed_train.csv").drop("label", axis=1)
         val = pd.read_csv("/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/preprocess4/preprocessed_test.csv").drop("label", axis=1)
         model = model_list[0]
@@ -30,9 +32,9 @@ class get_shap(BaseOperator):
         X_train = train.to_numpy()
         X_val = val.to_numpy()
         shap_train = shap.maskers.Independent(X_train)
-        explainer = shap.LinearExplainer(model, shap_train)
+        explainer = shap.Explainer(model)
         shap_val = X_val
-        shap_values = explainer.shap_values(shap_val)
+        shap_values = explainer(shap_val)
         shap.summary_plot(shap_values, shap_val, plot_type="bar", show=False, feature_names=val.columns)
         plt.tight_layout()
         plt.savefig("{}.png".format(graph_name))

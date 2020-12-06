@@ -94,7 +94,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
+                          'topic_8', 'topic_9', 'label']
 
   - node_name: preprocess1 # generic preprocess - can be changed later
     inputs: [select1.fil_train, select1.fil_val]
@@ -234,7 +234,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
+                          'topic_8', 'topic_9', 'label']
 
   - node_name: preprocess2 # generic preprocess - can be changed later
     inputs: [select2.fil_train, select2.fil_val]
@@ -373,7 +373,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
+                          'topic_8', 'topic_9', 'label']
 
   - node_name: preprocess3 # generic preprocess - can be changed later
     inputs: [select3.fil_train, select3.fil_val]
@@ -513,7 +513,7 @@ graph:
       selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
-                          'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
+                          'topic_8', 'topic_9', 'label']
 
   - node_name: preprocess4 # generic preprocess - can be changed later
     inputs: [select4.fil_train, select4.fil_val]

@@ -91,7 +91,7 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
                           'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
@@ -128,16 +128,16 @@ graph:
                    'max_depth': [3, 5, 10, 20, 50, 100],
                    'min_samples_split': [2, 4, 8]}
 
-  - node_name: svm_grid1
-    inputs: preprocess1.preprocessed_train
-    outputs: models
-    operation: model.model_grid
-    arguments:
-      target: label
-      model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
-                   'probability': [True]}
+#  - node_name: svm_grid1
+#    inputs: preprocess1.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
 
   - node_name: lsvc_grid1
     inputs: preprocess1.preprocessed_train
@@ -220,7 +220,7 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
                           'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
@@ -257,16 +257,16 @@ graph:
                    'max_depth': [3, 5, 10, 20, 50, 100],
                    'min_samples_split': [2, 4, 8]}
 
-  - node_name: svm_grid2
-    inputs: preprocess2.preprocessed_train
-    outputs: models
-    operation: model.model_grid
-    arguments:
-      target: label
-      model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
-                   'probability': [True]}
+#  - node_name: svm_grid2
+#    inputs: preprocess2.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
 
   - node_name: lsvc_grid2
     inputs: preprocess2.preprocessed_train
@@ -348,7 +348,7 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
                           'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
@@ -394,16 +394,16 @@ graph:
                    'max_depth': [3, 5, 10, 20, 50, 100],
                    'min_samples_split': [2, 4, 8]}
 
-  - node_name: svm_grid3
-    inputs: preprocess3.preprocessed_train
-    outputs: models
-    operation: model.model_grid
-    arguments:
-      target: label
-      model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
-                   'probability': [True]}
+#  - node_name: svm_grid3
+#    inputs: preprocess3.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
 
   - node_name: rf_grid3
     inputs: preprocess3.preprocessed_train
@@ -477,7 +477,7 @@ graph:
     outputs: [fil_train, fil_val]
     operation: data_clean.feature_selector
     arguments:
-      selected_features: ['bill_id', 'present_date', 'days_to_final','days_from_introduction','number_dems',
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
                           'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
                           'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
                           'topic_8', 'topic_9', 'primary_sponsor_district', 'percent_white', 'percent_black', 'percent_other', 'label']
@@ -514,16 +514,16 @@ graph:
                    'max_depth': [3, 5, 10, 20, 50, 100],
                    'min_samples_split': [2, 4, 8]}
 
-  - node_name: svm_grid4
-    inputs: preprocess4.preprocessed_train
-    outputs: models
-    operation: model.model_grid
-    arguments:
-      target: label
-      model_spec: {'model_name': 'sklearn.svm.SVC',
-                   'kernel': ['rbf', 'poly'],
-                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
-                   'probability': [True]}
+#  - node_name: svm_grid4
+#    inputs: preprocess4.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
 
   - node_name: lsvc_grid4
     inputs: preprocess4.preprocessed_train

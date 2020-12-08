@@ -398,10 +398,10 @@ class plot_grid_results(BaseOperator):
 
         print(len(result))
         prec = np.zeros((len(result)//4, 4))
-        prec[:,0] = result[result['split'] == '7/1/2011']['precision']
-        prec[:,1] = result[result['split'] == '7/1/2013']['precision']
-        prec[:,2] = result[result['split'] == '7/1/2015']['precision']
-        prec[:,3] = result[result['split'] == '7/1/2017']['precision']
+        prec[:,0] = result[result['split'] == '2011-07-01']['precision']
+        prec[:,1] = result[result['split'] == '2013-07-01']['precision']
+        prec[:,2] = result[result['split'] == '2015-07-01']['precision']
+        prec[:,3] = result[result['split'] == '2017-07-01']['precision']
         """
         prec_best = np.zeros((5, 4))
         idx = np.argsort(y[:,3])[-3:]

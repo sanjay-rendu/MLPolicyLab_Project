@@ -8,6 +8,7 @@ from sklearn.svm import LinearSVC
 import matplotlib.pyplot as plt
 import pickle
 import os
+import pickle
 
 class baseline(BaseOperator):
 
@@ -70,7 +71,8 @@ class load_model(BaseOperator):
         }
 
     def run(self, model_path):
-        m = load(model_path)
+        with open(model_path, 'rb') as handle:
+            m = pickle.load(handle)
 
         self.outputs["model"].write(m)
 
@@ -80,7 +82,7 @@ class predict_val(BaseOperator):
     def inputs(self):
         return {
             "data": Pandas_Dataframe(self.node.inputs[0]),
-            "model": Pickle_Obj(self.node.inputs[1])
+            #"model": Pickle_Obj(self.node.inputs[1])
         }
 
     @property
@@ -89,9 +91,11 @@ class predict_val(BaseOperator):
             "prediction": Pandas_Dataframe(self.node.outputs[0])
         }
 
-    def run(self, target):
+    def run(self, target, model_path):
         df = self.inputs["data"].read()
-        model = self.inputs["model"].read()
+        with open(model_path, 'rb') as handle:
+            m = pickle.load(handle)
+        model = m['model']
 
         y = df[target].to_numpy()
         X = df.drop(target, axis=1).to_numpy()
@@ -374,14 +378,14 @@ class plot_grid_results(BaseOperator):
         idx = np.argsort(prec[:,num_best])[-num_best:]
         prec_best[:num_best, :] = prec[idx]
 
-        prec_best[num_best, 0] = result[(result['split'] == '7/1/2011') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best, 1] = result[(result['split'] == '7/1/2013') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best, 2] = result[(result['split'] == '7/1/2015') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best, 3] = result[(result['split'] == '7/1/2017') & (result['model'] == 'baseline')]['precision']
-        prec_best[num_best+1, 0] = result[(result['split'] == '7/1/2011') & (result['model'] == 'commonsense')]['precision']
-        prec_best[num_best+1, 1] = result[(result['split'] == '7/1/2013') & (result['model'] == 'commonsense')]['precision']
-        prec_best[num_best+1, 2] = result[(result['split'] == '7/1/2015') & (result['model'] == 'commonsense')]['precision']
-        prec_best[num_best+1, 3] = result[(result['split'] == '7/1/2017') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
+        prec_best[num_best+1, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
+        prec_best[num_best+1, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
 
         return prec_best, styles_best
 
@@ -390,18 +394,24 @@ class plot_grid_results(BaseOperator):
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
 
-        styles = ['g-']*(len(result[result['model'] == 'DecisionTreeClassifier'])//4)
-        styles += ['c-']*(len(result[result['model'] == 'LogisticRegression'])//4)
-        styles += ['r-']*(len(result[result['model'] == 'LinearSVC'])//4)
-        styles += ['b-']*(len(result[result['model'] == 'RandomForestClassifier'])//4)
+        """
+        styles = ['g-']*(len(result[result['config'].split('(')[0] == 'DecisionTreeClassifier'])//4)
+        styles += ['c-']*(len(result[result['config'].split('(')[0] == 'LogisticRegression'])//4)
+        styles += ['r-']*(len(result[result['config'].split('(')[0] == 'LinearSVC'])//4)
+        styles += ['b-']*(len(result[result['config'].split('(')[0] == 'RandomForestClassifier'])//4)
+        """
+        styles = ['g-']*18
+        styles += ['c-']*7
+        styles += ['r-']*14
+        styles += ['b-']*41
         styles += ['k--'] + ['k:']
 
         print(len(result))
         prec = np.zeros((len(result)//4, 4))
-        prec[:,0] = result[result['split'] == '7/1/2011']['precision']
-        prec[:,1] = result[result['split'] == '7/1/2013']['precision']
-        prec[:,2] = result[result['split'] == '7/1/2015']['precision']
-        prec[:,3] = result[result['split'] == '7/1/2017']['precision']
+        prec[:,0] = result[result['split'] == '2011-07-01']['precision']
+        prec[:,1] = result[result['split'] == '2013-07-01']['precision']
+        prec[:,2] = result[result['split'] == '2015-07-01']['precision']
+        prec[:,3] = result[result['split'] == '2017-07-01']['precision']
         """
         prec_best = np.zeros((5, 4))
         idx = np.argsort(y[:,3])[-3:]
@@ -540,6 +550,7 @@ class top_prk(BaseOperator):
 
         result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
         i = 1
+
         for model in models:
             y_prob = model.predict_proba(X)[:, 1]
             output = pd.DataFrame(list(zip(list(y), y_prob)), columns=['label', 'score'])
@@ -552,8 +563,8 @@ class top_prk(BaseOperator):
                 precisions.append(temp[0])
                 recalls.append(temp[1])
 
-            #self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
-            i += 1
+                #self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
+                i += 1
 
         result = pd.concat([result, baseline, commonsense],ignore_index=True)
 
@@ -582,6 +593,7 @@ class plot_best_prk(BaseOperator):
         ax.plot(x, precisions, color="red")
         ax.set_xlabel('Percent of Total Bills')
         ax.set_ylabel("Precision", color="red")
+        #ax.axhline(precisions[-1], 'k--')
         ax.set_title('PR-k of model')
         ax.set_ylim(0, 1)
 
@@ -607,6 +619,6 @@ class plot_best_prk(BaseOperator):
         self.plot_prk(precision1, recall1, 'topk_model_1')
         self.plot_prk(precision2, recall2, 'topk_model_2')
         self.plot_prk(precision_baseline, recall_baseline, 'topk_model_baseline')
-        self.plot_prk(precision_commonsense, recall_commonsense, 'topk_model_recall')
+        self.plot_prk(precision_commonsense, recall_commonsense, 'topk_model_commonsense')
 
         self.outputs['result'].write(prk)

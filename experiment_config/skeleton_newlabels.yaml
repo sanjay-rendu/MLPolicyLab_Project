@@ -649,7 +649,32 @@ graph:
 ## Feature Importance ##
 
   - node_name: shap
-    inputs: []
+    inputs: metric_grid.top_models
     outputs: results
     operation: feature_importance.get_shap
+
+  # - node_name: load_dt
+  #   inputs: preprocess4.preprocessed_train
+  #   outputs: dt_model
+  #   operation: evaluate.load_model
+  #   arguments:
+  #       model_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/dt_grid4/DecisionTreeClassifier11.pkl
+
+  - node_name: predict_dt
+    inputs: preprocess4.preprocessed_test
+    outputs: preds
+    operation: evaluate.predict_val
+    arguments:
+        target: label
+        model_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/dt_grid4/DecisionTreeClassifier11.pkl
+
+  - node_name: prk_dt
+    inputs: predict_dt.preds
+    outputs: [metrics, topk_predictions, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+        target: label
+        graph_name: dt_prk
+  
+
 

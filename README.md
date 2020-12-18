@@ -55,7 +55,7 @@ List of other requirements for this project can be found in requirements.txt in 
 
 `skeleton_newlabels.yaml` contains the latest experiment config. Below is a visualization of its tasks: 
 
-![pipeline configuration](figures/skeleton_newlablels.png) 
+![pipeline configuration](figures/skeleton_newlablels.jpg) 
 
 
 ## Modeling Dashboards

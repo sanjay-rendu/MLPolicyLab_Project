@@ -394,12 +394,6 @@ class plot_grid_results(BaseOperator):
 
         idx_list = ['2011-07-01', '2013-07-01', '2015-07-01', '2017-07-01']
 
-        """
-        styles = ['g-']*(len(result[result['config'].split('(')[0] == 'DecisionTreeClassifier'])//4)
-        styles += ['c-']*(len(result[result['config'].split('(')[0] == 'LogisticRegression'])//4)
-        styles += ['r-']*(len(result[result['config'].split('(')[0] == 'LinearSVC'])//4)
-        styles += ['b-']*(len(result[result['config'].split('(')[0] == 'RandomForestClassifier'])//4)
-        """
         styles = ['g-']*18
         styles += ['c-']*7
         styles += ['r-']*14
@@ -412,19 +406,6 @@ class plot_grid_results(BaseOperator):
         prec[:,1] = result[result['split'] == '2013-07-01']['precision']
         prec[:,2] = result[result['split'] == '2015-07-01']['precision']
         prec[:,3] = result[result['split'] == '2017-07-01']['precision']
-        """
-        prec_best = np.zeros((5, 4))
-        idx = np.argsort(y[:,3])[-3:]
-        prec_best[:3, :] = y[idx]
-        prec_best[3, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[3, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[3, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[3, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'baseline')]['precision']
-        prec_best[4, 0] = result[(result['split'] == '2011-07-01') & (result['model'] == 'commonsense')]['precision']
-        prec_best[4, 1] = result[(result['split'] == '2013-07-01') & (result['model'] == 'commonsense')]['precision']
-        prec_best[4, 2] = result[(result['split'] == '2015-07-01') & (result['model'] == 'commonsense')]['precision']
-        prec_best[4, 3] = result[(result['split'] == '2017-07-01') & (result['model'] == 'commonsense')]['precision']
-        """
 
         fig, ax = plt.subplots(1, figsize=(12, 5))
         for i, style in enumerate(styles):
@@ -442,35 +423,6 @@ class plot_grid_results(BaseOperator):
 
         self.outputs['result'].write(result)
         
-
-class choose_best_two(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "result": Pandas_Dataframe(self.node.inputs[0]),
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "model1": Pickle_Obj(self.node.outputs[0]),
-            "model2": Pickle_Obj(self.node.outputs[1])
-        }
-
-    def run(self, split, save_path):
-        result = self.inputs["result"].read()
-        result = result.T
-
-        result['model'] = list(np.arange(len(result.index)))
-        result = result.sort_values(by=[result.columns[split-1]], ascending=False)
-
-        model1 = load(save_path + 'model_split_{:d}_{:d}.joblib'.format(split, int(result['model'][0])))
-        model2 = load(save_path + 'model_split_{:d}_{:d}.joblib'.format(split, int(result['model'][1])))
-
-        self.outputs['model1'].write(model1)
-        self.outputs['model2'].write(model2)
-
 
 class top_prk(BaseOperator):
 
@@ -544,12 +496,13 @@ class top_prk(BaseOperator):
         models = self.inputs["models"].read()
         baseline = self.inputs["baseline_prk"].read()
         commonsense = self.inputs["commonsense_prk"].read()
-
+        
         y = df[target].to_numpy()
         X = df.drop(target, axis=1).to_numpy()
 
         result = pd.DataFrame(columns=['model', 'k', 'precision', 'recall'])
         i = 1
+
 
         for model in models:
             y_prob = model.predict_proba(X)[:, 1]
@@ -564,7 +517,7 @@ class top_prk(BaseOperator):
                 recalls.append(temp[1])
 
                 #self.plot_prk(precisions, recalls, 'topk_model_'+str(i))
-                i += 1
+            i += 1
 
         result = pd.concat([result, baseline, commonsense],ignore_index=True)
 
@@ -604,20 +557,20 @@ class plot_best_prk(BaseOperator):
         fig.savefig("{}.png".format(graph_name))#os.path.join(os.path.dirname(self.inputs["prk_out"].data_location),"{}.png".format(graph_name)))
 
 
-    def run(self, save_path):
+    def run(self, save_path, top_n):
         prk = self.inputs["prk_out"].read()
 
-        precision1 = prk[prk['model_rank'] == 1]['precision']
-        precision2 = prk[prk['model_rank'] == 2]['precision']
+        for i in range(top_n):
+            precision = prk[prk['model_rank'] == (i+1)]['precision']
+            recall = prk[prk['model_rank'] == (i+1)]['recall']
+            self.plot_prk(precision, recall, 'topk_model_'+str(i+1))
+
         precision_baseline = prk[prk['model'] == 'baseline']['precision']
         precision_commonsense = prk[prk['model'] == 'commonsense']['precision']
-        recall1 = prk[prk['model_rank'] == 1]['recall']
-        recall2 = prk[prk['model_rank'] == 2]['recall']
+        
         recall_baseline = prk[prk['model'] == 'baseline']['recall']
         recall_commonsense = prk[prk['model'] == 'commonsense']['recall']
 
-        self.plot_prk(precision1, recall1, 'topk_model_1')
-        self.plot_prk(precision2, recall2, 'topk_model_2')
         self.plot_prk(precision_baseline, recall_baseline, 'topk_model_baseline')
         self.plot_prk(precision_commonsense, recall_commonsense, 'topk_model_commonsense')
 

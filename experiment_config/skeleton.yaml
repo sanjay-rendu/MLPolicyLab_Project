@@ -1,82 +1,684 @@
-experiment_name: skeleton1
+experiment_name: skeleton2
 owner: bills3_group
 
 inputs:
-  sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/bill.sql"
-  sql_loc_progress: "/data/groups/bills3/mlpp_project_home/experiment_config/progress.sql"
+  sql_loc_bill: "/data/groups/bills3/mlpp_project_home/experiment_config/generate_labeled_data.sql"
+  sql_bill_text: "/data/groups/bills3/mlpp_project_home/experiment_config/bill_texts.sql"
+  csv_district: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/NY_district_data.csv"
+
 outputs:
-  train_output: '/data/groups/bills3/mlpp_data_store/skeleton1/train_output.txt'
-  train_metrics: '/data/groups/bills3/mlpp_data_store/skeleton1/train_metrics.txt'
-  test_output: '/data/groups/bills3/mlpp_data_store/skeleton1/test_output.txt'
-  test_metrics: '/data/groups/bills3/mlpp_data_store/skeleton1/test_metrics.txt'
-  val_output: '/data/groups/bills3/mlpp_data_store/skeleton1/val_output.txt'
-  test_metrics: '/data/groups/bills3/mlpp_data_store/skeleton1/val_metrics.txt'
+  metrics_base1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics1.txt"
+  metrics_commonsense1: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics1.txt"
+
+  metrics_base2: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics2.txt"
+  metrics_commonsense2: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics2.txt"
+
+  metrics_base3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics3.txt"
+  metrics_commonsense3: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics3.txt"
+
+  metrics_base4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/base_metrics4.txt"
+  metrics_commonsense4: "/data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/commonsense_metrics4.txt"
 
 graph:
-  - node_name: fetch_bill_data
+  - node_name: fetch_labeled_data
     inputs: sql_loc_bill
     outputs: bill_data
     operation: data_io.fetch_sql
+    
+  - node_name: monthly_snapshots
+    inputs: fetch_labeled_data.bill_data
+    outputs: monthly_bill_data
+    operation: data_clean.monthly_row_selector
 
-  - node_name: fetch_progress_data
-    inputs: sql_loc_progress
-    outputs: progress_data
-    operation: data_io.fetch_sql
+  - node_name: merge_district_data
+    inputs: [csv_district, monthly_snapshots.monthly_bill_data]
+    outputs: merged_bill_data
+    operation: data_clean.merge_distric_data
+     
 
-  - node_name: labeled_data
-    inputs: [fetch_bill_data.bill_data, fetch_progress_data.progress_data]
-    outputs: labeled_data
-    operation: get_labeled_data.get_labeled_data
+## set 1: train [2009-01-01, 2010-01-01); test [2010-01-01 + 180 days, 2011-07-01) ##
+  - node_name: split1
+    inputs: merge_district_data.merged_bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
     arguments:
-      n: 6
+      prediction_date: '2010-01-01'
+      validation_end_date: '2011-07-01'
 
-  - node_name: data_eng
-    inputs: labeled_data.labeled_data
-    outputs: processed_data
-    operation: data_clean.feature_eng
-    arguments:
-      index: 'bill_id'
-      date: 'introduced_date'
-      ohe_features: ['introduced_body', 'bill_type']
-      summed_features: ['role_name', 'party_id']
-      other_features: ['final_status']
+  - node_name: bill_text1
+    inputs: [split1.train, split1.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
 
-  - node_name: split
-    inputs: data_eng.processed_data
-    outputs: [train, val, test]
-    operation: split.split
-    arguments:
-        val_size: 0.1
-        test_size: 0.2
+  - node_name: lda_model1
+    inputs: bill_text1.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
 
-  - node_name: model_logistic_regression
-    inputs: split.train
-    outputs: model
-    operation: model.logistic_regression_trainer
-    arguments:
-      target: final_status
-      max_iter: 200
+  - node_name: feature_eng_train1
+    inputs: [split1.train, bill_text1.train, lda_model1.vectorizer, lda_model1.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
 
-  - node_name: train
-    inputs: [split.train, model_logistic_regression.model]
-    outputs: [train_output, train_metrics]
-    operation: evaluate.evaluate
-    arguments:
-      target: final_status
-      threshold: 0.5
+  - node_name: feature_eng_val1
+    inputs: [split1.val, bill_text1.val, lda_model1.vectorizer, lda_model1.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
 
-  - node_name: validate
-    inputs: [split.val, model_logistic_regression.model]
-    outputs: [val_output, val_metrics]
-    operation: evaluate.evaluate
-    arguments:
-      target: final_status
-      threshold: 0.5
+  - node_name: baseline1
+    inputs: split1.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
 
-  - node_name: test
-    inputs: [split.test, model_logistic_regression.model]
-    outputs: [test_output, test_metrics]
-    operation: evaluate.evaluate
+  - node_name: topk_baserate1
+    inputs: baseline1.baserate
+    outputs: [metrics_base1, base_preds, result_df]
+    operation: evaluate.topk_metric
     arguments:
-      target: final_status
-      threshold: 0.5
+      target: label
+      graph_name: baseline
+
+  - node_name: topk_commonsense1
+    inputs: baseline1.commonsense
+    outputs: [metrics_commonsense1, commonsense_preds, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
+
+  - node_name: select1
+    inputs: [feature_eng_train1.df, feature_eng_val1.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9', 'label']
+
+  - node_name: preprocess1 # generic preprocess - can be changed later
+    inputs: [select1.fil_train, select1.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: preprocess1_bf # generic preprocess - can be changed later
+    inputs: [select1.fil_train, select1.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: lr_grid1
+    inputs: preprocess1.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+
+  - node_name: dt_grid1
+    inputs: preprocess1.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [3, 5, 10, 20, 50, 100],
+                   'min_samples_split': [2, 4, 8]}
+
+#  - node_name: svm_grid1
+#    inputs: preprocess1.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
+
+  - node_name: lsvc_grid1
+    inputs: preprocess1.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.svm.LinearSVC',
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: rf_grid1
+    inputs: preprocess1.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [5, 10, 20, 100]}
+
+  - node_name: models1
+    inputs: [lr_grid1.models, dt_grid1.models, lsvc_grid1.models, rf_grid1.models]
+    outputs: dir
+    operation: model.dummy_folder
+
+
+## set 2: train [2009-01-01, 2012-01-01); test [2012-01-01 + 180 days, 2013-07-01) ##
+  - node_name: split2
+    inputs: merge_district_data.merged_bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2012-01-01'
+      validation_end_date: '2013-07-01'
+
+  - node_name: bill_text2
+    inputs: [split2.train, split2.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
+
+  - node_name: lda_model2
+    inputs: bill_text2.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
+
+  - node_name: feature_eng_train2
+    inputs: [split2.train, bill_text2.train, lda_model2.vectorizer, lda_model2.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: feature_eng_val2
+    inputs: [split2.val, bill_text2.val, lda_model2.vectorizer, lda_model2.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: baseline2
+    inputs: split2.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: topk_baserate2
+    inputs: baseline2.baserate
+    outputs: [metrics_base2, base_preds, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
+
+  - node_name: topk_commonsense2
+    inputs: baseline2.commonsense
+    outputs: [metrics_commonsense2, commonsense_preds, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
+
+  - node_name: select2
+    inputs: [feature_eng_train2.df, feature_eng_val2.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9', 'label']
+
+  - node_name: preprocess2 # generic preprocess - can be changed later
+    inputs: [select2.fil_train, select2.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: preprocess2_bf # generic preprocess - can be changed later
+    inputs: [select2.fil_train, select2.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: lr_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+
+  - node_name: dt_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [3, 5, 10, 20, 50, 100],
+                   'min_samples_split': [2, 4, 8]}
+
+#  - node_name: svm_grid2
+#    inputs: preprocess2.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
+
+  - node_name: lsvc_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.svm.LinearSVC',
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: rf_grid2
+    inputs: preprocess2.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [5, 10, 20, 100]}
+
+  - node_name: models2
+    inputs: [lr_grid2.models, dt_grid2.models, lsvc_grid2.models, rf_grid2.models]
+    outputs: dir
+    operation: model.dummy_folder
+
+## set 3: train [2009-01-01, 2014-01-01); test [2014-01-01 + 180 days, 2015-07-01) ##
+  - node_name: split3
+    inputs: merge_district_data.merged_bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2014-01-01'
+      validation_end_date: '2015-07-01'
+
+  - node_name: bill_text3
+    inputs: [split3.train, split3.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
+
+  - node_name: lda_model3
+    inputs: bill_text3.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
+
+  - node_name: feature_eng_train3
+    inputs: [split3.train, bill_text3.train, lda_model3.vectorizer, lda_model3.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: feature_eng_val3
+    inputs: [split3.val, bill_text3.val, lda_model3.vectorizer, lda_model3.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: baseline3
+    inputs: split3.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: topk_baserate3
+    inputs: baseline3.baserate
+    outputs: [metrics_base3, base_preds, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
+
+  - node_name: topk_commonsense3
+    inputs: baseline3.commonsense
+    outputs: [metrics_commonsense3, commonsense_preds, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
+
+  - node_name: select3
+    inputs: [feature_eng_train3.df, feature_eng_val3.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9', 'label']
+
+  - node_name: preprocess3 # generic preprocess - can be changed later
+    inputs: [select3.fil_train, select3.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: preprocess3_bf # generic preprocess - can be changed later
+    inputs: [select3.fil_train, select3.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: lr_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2]}
+
+  - node_name: lsvc_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.svm.LinearSVC',
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: dt_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [3, 5, 10, 20, 50, 100],
+                   'min_samples_split': [2, 4, 8]}
+
+#  - node_name: svm_grid3
+#    inputs: preprocess3.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
+
+  - node_name: rf_grid3
+    inputs: preprocess3.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [5, 10, 20, 100]}
+
+  - node_name: models3
+    inputs: [lr_grid3.models, dt_grid3.models, lsvc_grid3.models, rf_grid3.models]
+    outputs: dir
+    operation: model.dummy_folder
+
+## set 4: train [2009-01-01, 2016-01-01); test [2016-01-01 + 180 days, 2017-07-01) ##
+  - node_name: split4
+    inputs: merge_district_data.merged_bill_data
+    outputs: [train, val]
+    operation: split.timeSplit
+    arguments:
+      prediction_date: '2016-01-01'
+      validation_end_date: '2017-07-01'
+
+  - node_name: bill_text4
+    inputs: [split4.train, split4.val]
+    outputs: [train, val]
+    operation: data_io.textSplit
+
+  - node_name: lda_model4
+    inputs: bill_text4.train
+    outputs: [vectorizer, lda_model]
+    operation: feature_eng.get_lda_model
+
+  - node_name: feature_eng_train4
+    inputs: [split4.train, bill_text4.train, lda_model4.vectorizer, lda_model4.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: feature_eng_val4
+    inputs: [split4.val, bill_text4.val, lda_model4.vectorizer, lda_model4.lda_model]
+    outputs: df
+    operation: feature_eng.topic_model
+
+  - node_name: baseline4
+    inputs: split4.val
+    outputs: [baserate, commonsense]
+    operation: evaluate.baseline
+
+  - node_name: topk_baserate4
+    inputs: baseline4.baserate
+    outputs: [metrics_base4, base_preds, result_df, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: baseline
+
+  - node_name: topk_commonsense4
+    inputs: baseline4.commonsense
+    outputs: [metrics_commonsense4, commonsense_preds, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+      target: label
+      graph_name: commonsense
+
+
+  - node_name: select4
+    inputs: [feature_eng_train4.df, feature_eng_val4.df]
+    outputs: [fil_train, fil_val]
+    operation: data_clean.feature_selector
+    arguments:
+      selected_features: ['bill_id', 'present_date', 'days_from_introduction','number_dems',
+                          'number_republicans','is_bipartisan', 'introduced_body','subjects','day_from_month_start',
+                          'topic_0', 'topic_1', 'topic_2','topic_3', 'topic_4', 'topic_5','topic_6', 'topic_7',
+                          'topic_8', 'topic_9', 'label']
+
+  - node_name: preprocess4 # generic preprocess - can be changed later
+    inputs: [select4.fil_train, select4.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['bill_id', 'present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+
+  - node_name: preprocess4_bf # generic preprocess - can be changed later
+    inputs: [select4.fil_train, select4.fil_val]
+    outputs: [preprocessed_train, preprocessed_test]
+    operation: feature_eng.CustomPreprocess
+    arguments:
+      drop_missing_perc: 0.7 # drop columns that have more than 90% missing
+      target_variable: label
+      ignore_variables: ['present_date']
+      numeric_impute: median
+      categorical_impute: most_frequent
+      keep_id: True
+
+  - node_name: lr_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.linear_model.LogisticRegression',
+                   'max_iter': [200],
+                   'penalty': ['l1','l2'],
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: dt_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.tree.DecisionTreeClassifier',
+                   'max_depth': [3, 5, 10, 20, 50, 100],
+                   'min_samples_split': [2, 4, 8]}
+
+#  - node_name: svm_grid4
+#    inputs: preprocess4.preprocessed_train
+#    outputs: models
+#    operation: model.model_grid
+#    arguments:
+#      target: label
+#      model_spec: {'model_name': 'sklearn.svm.SVC',
+#                   'kernel': ['rbf', 'poly'],
+#                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2],
+#                   'probability': [True]}
+
+  - node_name: lsvc_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.svm.LinearSVC',
+                   'C': [0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2]}
+
+  - node_name: rf_grid4
+    inputs: preprocess4.preprocessed_train
+    outputs: models
+    operation: model.model_grid
+    arguments:
+      target: label
+      model_spec: {'model_name': 'sklearn.ensemble.RandomForestClassifier',
+                   'n_estimators': [100, 500, 1000, 2000, 5000, 10000],
+                   'min_samples_split': [2, 4, 8],
+                   'max_depth': [5, 10, 20, 100]}
+
+  - node_name: models4
+    inputs: [lr_grid4.models, dt_grid4.models, lsvc_grid4.models, rf_grid4.models]
+    outputs: dir
+    operation: model.dummy_folder
+
+## Results ##
+
+  - node_name: metric_grid
+    inputs: [preprocess1.preprocessed_test, preprocess2.preprocessed_test,
+             preprocess3.preprocessed_test, preprocess4.preprocessed_test,
+             models1.dir, models2.dir, models3.dir, models4.dir]
+    outputs: [result_grid, top_models]
+    operation: evaluate.topk_metric_grid
+    arguments:
+        target: label
+        top_n: 5
+
+  - node_name: plot_grid_results
+    inputs: metric_grid.result_grid
+    outputs: result_grid
+    operation: evaluate.plot_grid_results
+    arguments:
+        save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+        num_best: 3
+
+  - node_name: result_sql
+    inputs: metric_grid.result_grid
+    outputs: None
+    operation: data_io.load_table
+    arguments:
+      table: precision_30
+      schema: sketch
+      date: split
+
+  - node_name: topk_top_models
+    inputs: [preprocess4.preprocessed_test, metric_grid.top_models, topk_baserate4.result_df, topk_commonsense4.result_df]
+    outputs: prk_output
+    operation: evaluate.top_prk
+    arguments:
+      target: label
+
+  - node_name: prk_sql
+    inputs: topk_top_models.prk_output
+    outputs: None
+    operation: data_io.load_table
+    arguments:
+      table: top_models_prk
+      schema: sketch
+  
+  - node_name: plot_best_prk
+    inputs: topk_top_models.prk_output
+    outputs: result_grid
+    operation: evaluate.plot_best_prk
+    arguments:
+        save_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/
+        top_n: 5
+
+## Feature Importance ##
+
+  - node_name: shap
+    inputs: [metric_grid.top_models, preprocess4.preprocessed_train, preprocess4.preprocessed_test]
+    outputs: results
+    operation: feature_importance.get_shap
+
+  # - node_name: load_dt
+  #   inputs: preprocess4.preprocessed_train
+  #   outputs: dt_model
+  #   operation: evaluate.load_model
+  #   arguments:
+  #       model_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/dt_grid4/DecisionTreeClassifier11.pkl
+
+  - node_name: predict_dt
+    inputs: preprocess4.preprocessed_test
+    outputs: preds
+    operation: evaluate.predict_val
+    arguments:
+        target: label
+        model_path: /data/groups/bills3/vrenduch/DAGGIT_HOME/daggit_storage/skeleton2/dt_grid4/DecisionTreeClassifier11.pkl
+
+  - node_name: prk_dt
+    inputs: predict_dt.preds
+    outputs: [metrics, topk_predictions, result_df]
+    operation: evaluate.topk_metric
+    arguments:
+        target: label
+        graph_name: dt_prk
+  
+  - node_name: bias_fairness
+    inputs: [preprocess4_bf.preprocessed_test, split4.val, lr_grid4.models, dt_grid4.models, rf_grid4.models]
+    outputs: results
+    operation: bias_fairness.fairness_extract
+ 

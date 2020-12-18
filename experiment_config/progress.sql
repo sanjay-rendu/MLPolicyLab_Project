@@ -1,1 +1,0 @@
-select * from ml_policy_class.bill_progress bp

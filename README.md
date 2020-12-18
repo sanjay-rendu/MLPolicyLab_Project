@@ -6,6 +6,18 @@ A description of the directory folders and files:
    * `skeleton.yaml`: defines all nodes in our pipeline graph with inputs, outputs and arguments for each.
    * `generate_labeled_data.sql`: postgreSQL script to extract the relevant features from the various tables, generate rows with prediction dates and appropriate labels.
    * `bills_text.sql`: extracts bill text
+   
+* `pipeline` contains files and functions for our main pipeline.
+   * `data_io.py`: defines python functions to execute postgreSQL scripts and fetch data.
+   * `data_clean.py`: data cleaning utilities including selecting features, monthly snapshots of rows, merging district data.
+   * `feature_eng.py`: topic modeling from text and feature preprocessing including imputation and normalization.
+   * `split.py`: splits data based on provided start and end dates.
+   * `model.py`: function to run the model grid.
+   * `evaluate.py`: functions to evalaute individual models as well as multiple models. Plot PR-k curves, select top models.
+   * `feature_importance.py`: functions to get SHAP values for a model.
+   * `bias_fairness.py`: functions for the bias and fairness analysis based on TPR and FDR.
+
+The `extras` folder contains miscellanous functions which are not used in the current version of the code.
 
 ## Instructions to run an experiment
 

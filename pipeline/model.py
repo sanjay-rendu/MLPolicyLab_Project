@@ -8,58 +8,6 @@ import pickle
 from distutils.dir_util import copy_tree
 import itertools
 
-class logistic_regression_trainer(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "train": Pandas_Dataframe(self.node.inputs[0])
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "model": Pickle_Obj(self.node.outputs[0])
-        }
-
-    def run(self, target, max_iter):
-        df = self.inputs["train"].read()
-
-        y = df[target].to_numpy()
-        X = df.drop(target, axis=1).to_numpy()
-
-        model = LogisticRegression(max_iter=max_iter)
-        model.fit(X, y)
-
-        self.outputs["model"].write(model)
-
-class rf_trainer(BaseOperator):
-
-    @property
-    def inputs(self):
-        return {
-            "train": Pandas_Dataframe(self.node.inputs[0])
-        }
-
-    @property
-    def outputs(self):
-        return {
-            "model": Pickle_Obj(self.node.outputs[0])
-        }
-
-    def run(self, target, params):
-        """ Set random forest parameters using params input as dictionary
-        """
-        df = self.inputs["train"].read()
-
-        y = df[target].to_numpy()
-        X = df.drop(target, axis=1).to_numpy()
-
-        model = RF(**params)
-        model.fit(X, y)
-
-        self.outputs["model"].write(model)
-
 class model_grid(BaseOperator):
     """ 
     Saves trained models defined in the skeleton, returns saved file names

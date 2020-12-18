@@ -42,7 +42,7 @@ class get_shap(BaseOperator):
         plt.tight_layout()
         plt.xlabel("Mean Absolute SHAP Value")
         plt.title("Feature Importance for Random Forest {}".format(i))
-        plt.savefig("shap{}.png".format("rf"+str(i)), bbox_inches = 'tight')
+        plt.savefig("plots/shap{}.png".format("rf"+str(i)), bbox_inches = 'tight')
 
     def get_feature_differences(self, model, val, max_vals, min_vals):
         y_prob = model.predict_proba(val)[:, 1]

@@ -1,8 +1,8 @@
 # Bill Passage Team 3
 
-# Instructions to run an experiment
+## Instructions to run an experiment
 
-## 1. Setup
+### 1. Setup
 
 #### 1.1 Install daggit library
 
@@ -32,7 +32,7 @@ List of other requirements for this project can be found in requirements.txt in 
  
  Note: Nothing to do here if you're using `bills3` virtualenv
  
- ## 2. Running the project pipeline
+ ### 2. Running the project pipeline
  
  #### 2.1 Register an experiment definition by its name
  `daggit init /PATH/TO/EXPERIMENT.yaml`
@@ -51,25 +51,25 @@ List of other requirements for this project can be found in requirements.txt in 
  `airflow webserver -p 8080` (starts airflow webserver on port 8080)
  
 
-# Experiment Configuration
+## Experiment Configuration
 
 `skeleton_newlabels.yaml` contains the latest experiment config. Below is a visualization of its tasks: 
 
 ![pipeline configuration](skeleton_newlablels.png) 
 
 
-# Modeling Dashboards
+## Modeling Dashboards
 
-## Precision @ 30%
+### Precision @ 30%
 
 ![precision at 30% over time](precision-30-over-time.jpg) 
 
-## PRK Curves
+### PRK Curves
 
 ![top prk](top-models-prk.jpg) 
 
 
-# ACLU Data Notes
+## ACLU Data Notes
 
 American Civil Liberties Union's (ACLU) mission is protecting civil liberties of all citizens through advocacy efforts against legislation that infringe on civil liberties, and ensuring that necessary statutes are in place to protect civil liberties.  To that end, one of the most important aspects of their work is monitoring legislation passed into law at national level and state level. Currently, this process of bill monitoring entails signifcant manual effort. Therefore, ACLU's state affiliates either, spend their time reading through all bills to identify legilation that they should oppose (or support), or end up having to pick and choose bills they read using their domain knowledge (e.g. picking bills sponsored by certain legislators/committees). The former takes away their time that could be spent on devising interventions (e.g. drafting lawsuits) and the latter can result in missing important legislation pieces.  
 

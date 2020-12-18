@@ -1,5 +1,12 @@
 # Bill Passage Team 3
 
+## Directory Structure
+A description of the directory folders and files:
+* `experiment_config` contains files external to our main pipeline.
+ * `skeleton.yaml`: defines all nodes in our pipeline graph with inputs, outputs and arguments for each.
+ * `generate_labeled_data.sql`: postgreSQL script to extract the relevant features from the various tables, generate rows with prediction dates and appropriate labels.
+ * `bills_text.sql`: extracts bill text
+
 ## Instructions to run an experiment
 
 ### 1. Setup
